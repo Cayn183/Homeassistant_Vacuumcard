@@ -1081,38 +1081,20 @@ class VacuumCardEditor extends LitElement {
 
   static get styles() {
     return css`
-      :host {
-        display: block;
-      }
-
-      .card-config {
-        direction: ltr;
-      }
-
-      .card-config ha-entity-picker {
-        margin-top: 8px;
-        display: block;
-      }
-
+      :host { display: block; }
+      .card-config { direction: ltr; }
+      .card-config ha-entity-picker,
       .card-config ha-textfield {
         display: block;
         margin-top: 8px;
       }
-
       .side-by-side {
         display: flex;
         align-items: flex-start;
         gap: 8px;
         margin-top: 8px;
       }
-
-      .side-by-side > * {
-        flex: 1;
-      }
-
-      .option {
-        margin-top: 8px;
-      }
+      .side-by-side > * { flex: 1; }
     `;
   }
 
@@ -1123,7 +1105,7 @@ class VacuumCardEditor extends LitElement {
 
   setConfig(config) {
     this._config = {
-      type: config?.type || 'custom:homeassistant-vacuumcard',
+      type: 'custom:homeassistant-vacuumcard',
       entity: config?.entity || '',
       title: config?.title || '',
       show_title: config?.show_title !== false,
@@ -1131,43 +1113,34 @@ class VacuumCardEditor extends LitElement {
     };
   }
 
-  _valueChanged(ev) {
-    const target = ev.target;
-    if (target.configValue) {
-      this._config = {
-        ...this._config,
-        [target.configValue]: target.checked !== undefined ? target.checked : target.value,
-      };
-      this._fireConfigChanged();
-    }
-  }
-
-  _entityPicked(ev) {
+  _updateConfig(key, value) {
     this._config = {
       ...this._config,
-      entity: ev.detail.value,
+      type: 'custom:homeassistant-vacuumcard',
+      [key]: value,
     };
-    this._fireConfigChanged();
-  }
-
-  _fireConfigChanged() {
     const event = new CustomEvent('config-changed', {
-      detail: {
-        config: {
-          ...this._config,
-          type: 'custom:homeassistant-vacuumcard',
-        },
-      },
+      detail: { config: this._config },
       bubbles: true,
       composed: true,
     });
     this.dispatchEvent(event);
   }
 
+  _entityPicked(ev) {
+    this._updateConfig('entity', ev.detail.value);
+  }
+
+  _titleChanged(ev) {
+    this._updateConfig('title', ev.target.value);
+  }
+
+  _switchChanged(ev) {
+    this._updateConfig(ev.target.configValue, ev.target.checked);
+  }
+
   render() {
-    if (!this.hass) {
-      return html``;
-    }
+    if (!this.hass) return html``;
 
     const config = this._config;
 
@@ -1177,33 +1150,31 @@ class VacuumCardEditor extends LitElement {
           .hass=${this.hass}
           .value=${config.entity}
           .includeDomains=${['vacuum']}
-          .configValue=${'entity'}
           @value-changed=${this._entityPicked}
           label="Entity"
         ></ha-entity-picker>
 
         <ha-textfield
           .value=${config.title || ''}
-          .configValue=${'title'}
-          @input=${this._valueChanged}
           label="Titel (optional)"
           placeholder="z.B. Mein Saugroboter"
+          @change=${this._titleChanged}
         ></ha-textfield>
 
         <div class="side-by-side">
           <ha-formfield label="Titel anzeigen">
             <ha-switch
               .checked=${config.show_title !== false}
-              .configValue=${'show_title'}
-              @change=${this._valueChanged}
+              configValue="show_title"
+              @change=${this._switchChanged}
             ></ha-switch>
           </ha-formfield>
 
           <ha-formfield label="Animationen">
             <ha-switch
               .checked=${config.animated !== false}
-              .configValue=${'animated'}
-              @change=${this._valueChanged}
+              configValue="animated"
+              @change=${this._switchChanged}
             ></ha-switch>
           </ha-formfield>
         </div>
