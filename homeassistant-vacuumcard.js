@@ -587,6 +587,7 @@ class VacuumCard extends LitElement {
       show_title: config.show_title !== false,
       animated: config.animated !== false,
       battery_entity: config.battery_entity || '',
+      areas: Array.isArray(config.areas) ? config.areas : [],
     };
   }
 
@@ -781,19 +782,36 @@ class VacuumCard extends LitElement {
    * Gibt alle verfügbaren Bereiche zurück – priorisiert:
    * 1. Vom Staubsauger gelieferte Räume (mit Segment-IDs)
    * 2. Home-Assistant-Areas (aus der Area-Registry)
+   *
+   * Wenn config.areas gesetzt ist, werden nur die darin aufgeführten
+   * Bereiche angezeigt (Matching über name oder id, case-insensitive).
    */
   get _allAreas() {
     const vacuumRooms = this._rooms;
+    let areas;
     if (vacuumRooms.length > 0) {
-      return vacuumRooms.map(r => ({
+      areas = vacuumRooms.map(r => ({
         ...r,
         source: 'vacuum',
       }));
+    } else {
+      areas = this._haAreas.map(a => ({
+        ...a,
+        source: 'ha',
+      }));
     }
-    return this._haAreas.map(a => ({
-      ...a,
-      source: 'ha',
-    }));
+
+    // Filterung über config.areas
+    const filterList = this.config?.areas;
+    if (filterList && filterList.length > 0) {
+      const lowerFilter = filterList.map(f => f.toLowerCase());
+      areas = areas.filter(a =>
+        lowerFilter.includes(a.name?.toLowerCase()) ||
+        lowerFilter.includes(a.id?.toLowerCase())
+      );
+    }
+
+    return areas;
   }
 
   /* --- Service Calls --- */
@@ -1004,6 +1022,11 @@ class VacuumCard extends LitElement {
               <p class="area-hint" style="margin-bottom:12px;">
                 Bereiche aus deiner Home-Assistant-Area-Registry.
                 Bereichsbasierte Reinigung erfordert ggf. zusätzliche Konfiguration.
+              </p>
+            ` : ''}
+            ${this.config?.areas?.length > 0 ? html`
+              <p class="area-hint" style="margin-bottom:12px;font-style:italic;">
+                Gefiltert nach Konfiguration — ${this.config.areas.length} Bereich${this.config.areas.length > 1 ? 'e' : ''} konfiguriert.
               </p>
             ` : ''}
             <div class="area-grid">
@@ -1227,6 +1250,7 @@ class VacuumCard extends LitElement {
       show_title: true,
       animated: true,
       battery_entity: '',
+      areas: [],
     };
   }
 }
@@ -1289,6 +1313,7 @@ class VacuumCardEditor extends LitElement {
       show_title: config?.show_title !== false,
       animated: config?.animated !== false,
       battery_entity: config?.battery_entity || '',
+      areas: Array.isArray(config?.areas) ? [...config.areas] : [],
     };
   }
 
@@ -1320,6 +1345,15 @@ class VacuumCardEditor extends LitElement {
 
   _batteryEntityPicked(ev) {
     this._updateConfig('battery_entity', ev.detail.value || '');
+  }
+
+  _areasInputChanged(ev) {
+    const raw = ev.target?.value ?? '';
+    const list = raw
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    this._updateConfig('areas', list);
   }
 
   _titleInputChanged(ev) {
@@ -1375,6 +1409,19 @@ class VacuumCardEditor extends LitElement {
           placeholder="Automatisch erkennen"
           style="display:block;margin-top:16px;"
         ></ha-entity-picker>
+
+        <div style="margin-top:16px;">
+          <input
+            class="title-input"
+            .value=${Array.isArray(config.areas) ? config.areas.join(', ') : ''}
+            placeholder="z.B. Wohnzimmer, Küche, Flur"
+            @input=${this._areasInputChanged}
+          />
+          <p style="font-size:11px;color:var(--secondary-text-color);margin:4px 0 0 0;line-height:1.4;">
+            Bereiche filtern (kommagetrennt). Nur diese Bereiche werden im Dialog angezeigt.<br>
+            Bereichsnamen oder IDs aus deiner Home-Assistant-Area-Registry.
+          </p>
+        </div>
       </div>
     `;
   }
