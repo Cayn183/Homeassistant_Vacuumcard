@@ -1169,7 +1169,7 @@ class VacuumCardEditor extends LitElement {
         <ha-entity-picker
           .hass=${this.hass}
           .value=${config.entity}
-          .includeEntities=${['vacuum']}
+          .includeDomains=${['vacuum']}
           .configValue=${'entity'}
           @value-changed=${this._entityPicked}
           label="Entity"
