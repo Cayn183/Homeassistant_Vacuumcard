@@ -274,6 +274,8 @@ class VacuumCard extends LitElement {
         flex: 1 1 0px;
         min-width: 140px;
         max-width: 240px;
+        width: 100%;
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         gap: 10px;
