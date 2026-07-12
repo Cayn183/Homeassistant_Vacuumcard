@@ -88,7 +88,6 @@ class VacuumCard extends LitElement {
         border-radius: var(--ha-card-border-radius, 12px);
         box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.12));
         padding: 16px;
-        overflow: hidden;
       }
 
       /* --- Status Header --- */
@@ -1181,18 +1180,32 @@ class VacuumCardEditor extends LitElement {
     return css`
       :host { display: block; }
       .card-config { direction: ltr; }
-      .card-config ha-entity-picker,
-      .card-config ha-input {
+      .card-config ha-entity-picker {
         display: block;
         margin-top: 8px;
       }
-      .side-by-side {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
+      .card-config .title-input {
+        display: block;
+        width: 100%;
         margin-top: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--divider-color, rgba(0,0,0,0.12));
+        border-radius: var(--ha-card-border-radius, 8px);
+        background: var(--input-background-color, var(--card-background));
+        color: var(--primary-text-color);
+        font-size: 14px;
+        font-family: var(--primary-font-family, 'Roboto', sans-serif);
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.2s;
       }
-      .side-by-side > * { flex: 1; }
+      .card-config .title-input:focus {
+        border-color: var(--primary-color, #03a9f4);
+      }
+      .card-config .title-input::placeholder {
+        color: var(--secondary-text-color);
+        opacity: 0.7;
+      }
     `;
   }
 
@@ -1270,13 +1283,12 @@ class VacuumCardEditor extends LitElement {
               @change=${this._showTitleChanged}
             ></ha-switch>
           </div>
-          <ha-input
+          <input
+            class="title-input"
             .value=${config.title || ''}
-            .placeholder=${'z.B. Mein Saugroboter'}
-            label="Titel"
+            placeholder="z.B. Mein Saugroboter"
             @input=${this._titleInputChanged}
-            style="display:block;width:100%;"
-          ></ha-input>
+          />
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;margin-top:8px;">
