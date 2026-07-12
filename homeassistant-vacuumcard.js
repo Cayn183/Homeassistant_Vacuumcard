@@ -1182,7 +1182,7 @@ class VacuumCardEditor extends LitElement {
       :host { display: block; }
       .card-config { direction: ltr; }
       .card-config ha-entity-picker,
-      .card-config ha-textfield {
+      .card-config ha-input {
         display: block;
         margin-top: 8px;
       }
@@ -1270,13 +1270,13 @@ class VacuumCardEditor extends LitElement {
               @change=${this._showTitleChanged}
             ></ha-switch>
           </div>
-          <ha-textfield
+          <ha-input
             .value=${config.title || ''}
+            .placeholder=${'z.B. Mein Saugroboter'}
             label="Titel"
-            placeholder="z.B. Mein Saugroboter"
             @input=${this._titleInputChanged}
             style="display:block;width:100%;"
-          ></ha-textfield>
+          ></ha-input>
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;margin-top:8px;">
