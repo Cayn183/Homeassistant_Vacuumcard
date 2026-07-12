@@ -1058,6 +1058,7 @@ class VacuumCard extends LitElement {
 
   static getStubConfig() {
     return {
+      type: 'custom:homeassistant-vacuumcard',
       entity: '',
       title: 'Staubsauger',
       show_title: true,
@@ -1122,6 +1123,7 @@ class VacuumCardEditor extends LitElement {
 
   setConfig(config) {
     this._config = {
+      type: config?.type || 'custom:homeassistant-vacuumcard',
       entity: config?.entity || '',
       title: config?.title || '',
       show_title: config?.show_title !== false,
@@ -1150,7 +1152,12 @@ class VacuumCardEditor extends LitElement {
 
   _fireConfigChanged() {
     const event = new CustomEvent('config-changed', {
-      detail: { config: this._config },
+      detail: {
+        config: {
+          ...this._config,
+          type: 'custom:homeassistant-vacuumcard',
+        },
+      },
       bubbles: true,
       composed: true,
     });
