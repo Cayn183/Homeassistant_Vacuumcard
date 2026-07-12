@@ -1297,6 +1297,29 @@ class VacuumCardEditor extends LitElement {
         color: var(--secondary-text-color);
         opacity: 0.7;
       }
+
+      .load-areas-btn {
+        padding: 8px 14px;
+        border: none;
+        border-radius: var(--ha-card-border-radius, 8px);
+        background: var(--primary-color, #03a9f4);
+        color: var(--text-primary-color, #fff);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+        font-family: var(--primary-font-family, 'Roboto', sans-serif);
+        height: 38px;
+      }
+
+      .load-areas-btn:hover {
+        opacity: 0.85;
+      }
+
+      .load-areas-btn:active {
+        opacity: 0.7;
+      }
     `;
   }
 
@@ -1356,6 +1379,19 @@ class VacuumCardEditor extends LitElement {
     this._updateConfig('areas', list);
   }
 
+  async _loadAreas() {
+    if (!this.hass) return;
+    try {
+      const areas = await this.hass.callWS({ type: 'config/area_registry/list' });
+      const names = areas
+        .map(a => a.name)
+        .filter(n => n && n.length > 0);
+      this._updateConfig('areas', names);
+    } catch (e) {
+      console.warn('VacuumCard Editor: Fehler beim Laden der Bereiche', e);
+    }
+  }
+
   _titleInputChanged(ev) {
     const value = ev.target?.value ?? ev.detail?.value ?? '';
     this._updateConfig('title', value);
@@ -1411,15 +1447,27 @@ class VacuumCardEditor extends LitElement {
         ></ha-entity-picker>
 
         <div style="margin-top:16px;">
-          <input
-            class="title-input"
-            .value=${Array.isArray(config.areas) ? config.areas.join(', ') : ''}
-            placeholder="z.B. Wohnzimmer, Küche, Flur"
-            @input=${this._areasInputChanged}
-          />
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input
+              class="title-input"
+              style="flex:1;margin-top:0;"
+              .value=${Array.isArray(config.areas) ? config.areas.join(', ') : ''}
+              placeholder="z.B. Wohnzimmer, Küche, Flur"
+              @input=${this._areasInputChanged}
+            />
+            <button
+              class="load-areas-btn"
+              @click=${this._loadAreas}
+              title="Bereiche aus Home Assistant laden"
+            >
+              Laden
+            </button>
+          </div>
           <p style="font-size:11px;color:var(--secondary-text-color);margin:4px 0 0 0;line-height:1.4;">
-            Bereiche filtern (kommagetrennt). Nur diese Bereiche werden im Dialog angezeigt.<br>
-            Bereichsnamen oder IDs aus deiner Home-Assistant-Area-Registry.
+            Bereiche filtern (kommagetrennt). Nur diese Bereiche werden im Dialog angezeigt.
+            <button class="load-link-btn" @click=${this._loadAreas} style="background:none;border:none;color:var(--primary-color,#03a9f4);cursor:pointer;font-size:11px;padding:0;text-decoration:underline;">
+              Bereiche aus HA laden
+            </button>
           </p>
         </div>
       </div>
