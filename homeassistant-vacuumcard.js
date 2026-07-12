@@ -158,15 +158,6 @@ class VacuumCard extends LitElement {
         transform-origin: 120px 120px;
       }
 
-      .brush-spokes line {
-        animation: brush-spin 1.5s linear infinite;
-        transform-origin: 174px 76px;
-      }
-
-      @keyframes brush-spin {
-        100% { transform: rotate(360deg); }
-      }
-
       .particle {
         animation: particle-float 2.5s ease-out infinite;
       }
@@ -202,14 +193,6 @@ class VacuumCard extends LitElement {
       @keyframes dock-pulse {
         0%, 100% { opacity: 0.8; }
         50% { opacity: 1; }
-      }
-
-      .container.cleaning .vacuum-body-rotate {
-        animation: body-drift 0.8s ease-in-out infinite alternate;
-      }
-
-      .container.returning .vacuum-body-rotate {
-        animation: body-drift 0.5s ease-in-out infinite alternate;
       }
 
       @keyframes body-drift {
@@ -271,11 +254,6 @@ class VacuumCard extends LitElement {
       }
 
       .select-menu, .clean-areas-btn {
-        flex: 1 1 0px;
-        min-width: 140px;
-        max-width: 240px;
-        width: 100%;
-        box-sizing: border-box;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -287,6 +265,17 @@ class VacuumCard extends LitElement {
         transition: background 0.2s;
         text-align: left;
         color: var(--primary-text-color);
+      }
+
+      .select-menu {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .clean-areas-btn {
+        flex: 1 1 0px;
+        min-width: 140px;
+        max-width: 240px;
       }
 
       .select-menu:hover, .clean-areas-btn:hover {
@@ -336,6 +325,7 @@ class VacuumCard extends LitElement {
         flex: 1 1 0px;
         min-width: 140px;
         max-width: 240px;
+        display: flex;
       }
 
       .dropdown-menu {
@@ -1086,7 +1076,6 @@ class VacuumCard extends LitElement {
 
   _renderVacuumSVG(state, color) {
     const isActive = state === 'cleaning' || state === 'returning';
-    const containerClass = state;
 
     return html`
       <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="vacuum-svg">
