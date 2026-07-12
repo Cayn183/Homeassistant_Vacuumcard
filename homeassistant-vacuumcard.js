@@ -1168,7 +1168,7 @@ class VacuumCard extends LitElement {
         <g class="dock-indicator" opacity="${state === 'docked' || state === 'returning' ? 1 : 0}">
           <path d="M 84 188 L 156 188 C 160.4 188 164 191.6 164 196 L 164 208 C 164 212.4 160.4 216 156 216 L 84 216 C 79.6 216 76 212.4 76 208 L 76 196 C 76 191.6 79.6 188 84 188 Z" fill="${color}" fill-opacity="0.15" stroke="${color}" stroke-width="2" stroke-linecap="round"></path>
         </g>
-        <g class="return-path" opacity="${state === 'docked' || state === 'returning' ? 0.55 : 0}">
+        <g class="return-path" opacity="${state === 'returning' ? 0.55 : 0}">
           <path d="M 120 220 L 110 206 L 130 206 Z" fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round"></path>
         </g>
       </svg>
