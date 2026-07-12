@@ -1381,6 +1381,18 @@ class VacuumCardEditor extends LitElement {
 
   async _loadAreas() {
     if (!this.hass) return;
+
+    // Warnung, wenn bereits Bereiche konfiguriert sind
+    const currentAreas = this._config?.areas;
+    if (currentAreas && currentAreas.length > 0) {
+      const confirmed = confirm(
+        'Bereits konfigurierte Bereiche werden ersetzt.\n\n' +
+        `Aktuell: ${currentAreas.join(', ')}\n\n` +
+        'Möchtest du alle Bereiche aus Home Assistant laden und die bisherige Eingabe ersetzen?'
+      );
+      if (!confirmed) return;
+    }
+
     try {
       const areas = await this.hass.callWS({ type: 'config/area_registry/list' });
       const names = areas
