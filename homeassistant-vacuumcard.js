@@ -1078,6 +1078,7 @@ class VacuumCard extends LitElement {
     const isActive = state === 'cleaning' || state === 'returning';
 
     return html`
+      <div class="container ${state}" style="--vacuum-color:${color};">
       <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="vacuum-svg">
         <defs>
           <style>
@@ -1112,69 +1113,68 @@ class VacuumCard extends LitElement {
         </defs>
 
         <!-- Glow -->
-        <circle cx="120" cy="120" r="110" class="glow" fill="${color}" opacity="0.06"></circle>
+        <circle cx="120" cy="120" r="110" class="glow" fill="var(--vacuum-color)" opacity="0.06"></circle>
 
         <g class="vacuum-body-rotate">
           <g class="vacuum-body">
             <!-- Brush right -->
             <g class="brush brush-right">
               <g class="brush-spokes">
-                <line x1="174" y1="76" x2="174" y2="64" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
-                <line x1="174" y1="76" x2="174" y2="88" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
-                <line x1="174" y1="76" x2="162" y2="76" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
-                <line x1="174" y1="76" x2="186" y2="76" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="174" y2="64" stroke="var(--vacuum-color)" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="174" y2="88" stroke="var(--vacuum-color)" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="162" y2="76" stroke="var(--vacuum-color)" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="186" y2="76" stroke="var(--vacuum-color)" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
               </g>
-              <circle cx="174" cy="76" r="2" fill="${color}" opacity="0.5"></circle>
+              <circle cx="174" cy="76" r="2" fill="var(--vacuum-color)" opacity="0.5"></circle>
             </g>
 
             <!-- Main body -->
-            <circle cx="120" cy="120" r="72" fill="var(--card-background-color, #fff)" stroke="${color}" stroke-width="2"></circle>
-            <circle cx="120" cy="120" r="66" fill="none" stroke="${color}" stroke-width="0.8" opacity="0.2"></circle>
+            <circle cx="120" cy="120" r="72" fill="var(--card-background-color, #fff)" stroke="var(--vacuum-color)" stroke-width="2"></circle>
+            <circle cx="120" cy="120" r="66" fill="none" stroke="var(--vacuum-color)" stroke-width="0.8" opacity="0.2"></circle>
 
             <!-- Bumper -->
-            <path d="M 60 94 A 68 68 0 0 1 180 94" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" class="bumper"></path>
+            <path d="M 60 94 A 68 68 0 0 1 180 94" fill="none" stroke="var(--vacuum-color)" stroke-width="3" stroke-linecap="round" class="bumper"></path>
 
             <!-- Nav lines -->
             <g class="nav-lines" opacity="0.15">
-              <line x1="120" y1="56" x2="120" y2="74" stroke="${color}" stroke-width="1.5"></line>
-              <line x1="88" y1="63" x2="96" y2="78" stroke="${color}" stroke-width="1.5"></line>
-              <line x1="152" y1="63" x2="144" y2="78" stroke="${color}" stroke-width="1.5"></line>
+              <line x1="120" y1="56" x2="120" y2="74" stroke="var(--vacuum-color)" stroke-width="1.5"></line>
+              <line x1="88" y1="63" x2="96" y2="78" stroke="var(--vacuum-color)" stroke-width="1.5"></line>
+              <line x1="152" y1="63" x2="144" y2="78" stroke="var(--vacuum-color)" stroke-width="1.5"></line>
             </g>
 
             <!-- LiDAR -->
-            <circle cx="120" cy="108" r="14" fill="var(--card-background-color, #fff)" stroke="${color}" stroke-width="2" class="lidar-housing"></circle>
-            <circle cx="120" cy="108" r="9" fill="none" stroke="${color}" stroke-width="0.8" opacity="0.25"></circle>
+            <circle cx="120" cy="108" r="14" fill="var(--card-background-color, #fff)" stroke="var(--vacuum-color)" stroke-width="2" class="lidar-housing"></circle>
+            <circle cx="120" cy="108" r="9" fill="none" stroke="var(--vacuum-color)" stroke-width="0.8" opacity="0.25"></circle>
 
             <!-- Power button -->
-            <circle cx="120" cy="140" r="8" fill="${color}" opacity="0.08" class="power-ring"></circle>
-            <circle cx="120" cy="140" r="4" fill="${color}" opacity="0.25" class="power-dot"></circle>
+            <circle cx="120" cy="140" r="8" fill="var(--vacuum-color)" opacity="0.08" class="power-ring"></circle>
+            <circle cx="120" cy="140" r="4" fill="var(--vacuum-color)" opacity="0.25" class="power-dot"></circle>
           </g>
         </g>
 
-        <!-- Particles (only when active) -->
-        ${isActive ? html`
-          <g class="particles">
-            <circle class="particle p1" cx="120" cy="120" r="2" fill="${color}"></circle>
-            <circle class="particle p2" cx="120" cy="120" r="1.5" fill="${color}"></circle>
-            <circle class="particle p3" cx="120" cy="120" r="1.5" fill="${color}"></circle>
-            <circle class="particle p4" cx="120" cy="120" r="2" fill="${color}"></circle>
-            <circle class="particle p5" cx="120" cy="120" r="1.5" fill="${color}"></circle>
-            <circle class="particle p6" cx="120" cy="120" r="1.5" fill="${color}"></circle>
-            <circle class="particle p7" cx="120" cy="120" r="1" fill="${color}"></circle>
-            <circle class="particle p8" cx="120" cy="120" r="1" fill="${color}"></circle>
-          </g>
-        ` : ''}
+        <!-- Particles (immer sichtbar wie im Original) -->
+        <g class="particles">
+          <circle class="particle p1" cx="120" cy="120" r="2" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p2" cx="120" cy="120" r="1.5" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p3" cx="120" cy="120" r="1.5" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p4" cx="120" cy="120" r="2" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p5" cx="120" cy="120" r="1.5" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p6" cx="120" cy="120" r="1.5" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p7" cx="120" cy="120" r="1" fill="var(--vacuum-color)"></circle>
+          <circle class="particle p8" cx="120" cy="120" r="1" fill="var(--vacuum-color)"></circle>
+        </g>
 
         <!-- Dock indicator (when docked or returning) -->
         ${state === 'docked' || state === 'returning' ? html`
           <g class="dock-indicator">
-            <rect x="76" y="188" width="88" height="28" rx="8" fill="var(--card-background-color, #fff)" stroke="${color}" stroke-width="2"></rect>
+            <rect x="76" y="188" width="88" height="28" rx="8" fill="var(--card-background-color, #fff)" stroke="var(--vacuum-color)" stroke-width="2"></rect>
           </g>
           <g class="return-path">
-            <polygon points="120,220 110,206 130,206" fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round" opacity="0.55"></polygon>
+            <polygon points="120,220 110,206 130,206" fill="var(--vacuum-color)" stroke="var(--vacuum-color)" stroke-width="2" stroke-linejoin="round" opacity="0.55"></polygon>
           </g>
         ` : ''}
       </svg>
+      </div>
     `;
   }
 
