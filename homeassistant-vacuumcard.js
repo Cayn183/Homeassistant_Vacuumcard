@@ -1078,8 +1078,8 @@ class VacuumCard extends LitElement {
     const isActive = state === 'cleaning' || state === 'returning';
 
     return html`
-      <div class="container ${state}" style="--vacuum-color:${color};">
-      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="vacuum-svg">
+      <div class="container ${state}">
+      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="vacuum-svg" style="--vacuum-color:${color};">
         <defs>
           <style>
             .particle { animation: particle-float 2.5s ease-out infinite; }
@@ -1164,15 +1164,13 @@ class VacuumCard extends LitElement {
           <circle class="particle p8" cx="120" cy="120" r="1" fill="var(--vacuum-color)"></circle>
         </g>
 
-        <!-- Dock indicator (when docked or returning) -->
-        ${state === 'docked' || state === 'returning' ? html`
-          <g class="dock-indicator">
-            <rect x="76" y="188" width="88" height="28" rx="8" fill="var(--card-background-color, #fff)" stroke="var(--vacuum-color)" stroke-width="2"></rect>
-          </g>
-          <g class="return-path">
-            <polygon points="120,220 110,206 130,206" fill="var(--vacuum-color)" stroke="var(--vacuum-color)" stroke-width="2" stroke-linejoin="round" opacity="0.55"></polygon>
-          </g>
-        ` : ''}
+        <!-- Dock indicator (immer im DOM, Sichtbarkeit via opacity) -->
+        <g class="dock-indicator" opacity="${state === 'docked' || state === 'returning' ? 1 : 0}">
+          <path d="M 84 188 L 156 188 C 160.4 188 164 191.6 164 196 L 164 208 C 164 212.4 160.4 216 156 216 L 84 216 C 79.6 216 76 212.4 76 208 L 76 196 C 76 191.6 79.6 188 84 188 Z" fill="${color}" fill-opacity="0.15" stroke="${color}" stroke-width="2" stroke-linecap="round"></path>
+        </g>
+        <g class="return-path" opacity="${state === 'docked' || state === 'returning' ? 0.55 : 0}">
+          <path d="M 120 220 L 110 206 L 130 206 Z" fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round"></path>
+        </g>
       </svg>
       </div>
     `;
