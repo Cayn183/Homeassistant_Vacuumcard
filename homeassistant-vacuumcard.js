@@ -1237,7 +1237,7 @@ class VacuumCardEditor extends LitElement {
   _switchChanged(ev) {
     const key = ev.currentTarget.getAttribute('configValue');
     if (key) {
-      this._updateConfig(key, !this._config[key]);
+      this._updateConfig(key, ev.target.checked);
     }
   }
 
@@ -1265,7 +1265,7 @@ class VacuumCardEditor extends LitElement {
             <ha-switch
               .checked=${config.show_title !== false}
               configValue="show_title"
-              @click=${this._switchChanged}
+              @change=${this._switchChanged}
             ></ha-switch>
           </ha-formfield>
 
@@ -1273,19 +1273,17 @@ class VacuumCardEditor extends LitElement {
             <ha-switch
               .checked=${config.animated !== false}
               configValue="animated"
-              @click=${this._switchChanged}
+              @change=${this._switchChanged}
             ></ha-switch>
           </ha-formfield>
         </div>
 
-        ${config.show_title !== false ? html`
-          <ha-textfield
-            .value=${config.title || ''}
-            label="Titel"
-            placeholder="z.B. Mein Saugroboter"
-            @input=${this._titleChanged}
-          ></ha-textfield>
-        ` : ''}
+        <ha-textfield
+          .value=${config.title || ''}
+          label="Titel"
+          placeholder="z.B. Mein Saugroboter"
+          @input=${this._titleChanged}
+        ></ha-textfield>
 
         <ha-entity-picker
           .hass=${this.hass}
