@@ -605,9 +605,12 @@ class VacuumCard extends LitElement {
   }
 
   get _batteryLevel() {
-    // Roborock & Standard: battery_level oder battery
     const attrs = this._stateObj?.attributes || {};
-    return attrs.battery_level ?? attrs.battery ?? attrs.battery_percentage ?? 0;
+    // Zahl direkt oder als String
+    let level = attrs.battery_level ?? attrs.battery ?? attrs.battery_percentage ?? attrs.batteryLevel ?? 0;
+    // Manche Integrationen liefern 0-1 statt Prozent
+    if (typeof level === 'number' && level <= 1 && level > 0) level = Math.round(level * 100);
+    return Number(level) || 0;
   }
 
   get _fanSpeed() {
@@ -632,6 +635,11 @@ class VacuumCard extends LitElement {
         id: r.id ?? r.segmentId ?? r.segment_id,
         name: r.name ?? r.rawName ?? r.segment_name ?? r,
       })).filter(r => r.id != null && r.name);
+    }
+
+    // 1b) Array von Strings: ['Wohnzimmer', 'Küche', ...]
+    if (Array.isArray(attrs.rooms) && attrs.rooms.length > 0 && typeof attrs.rooms[0] === 'string') {
+      return attrs.rooms.map((name, i) => ({ id: i, name }));
     }
 
     // 2) Verschachtelt: {rooms: [{segmentId, rawName}, ...]} (Roborock Traits-Format)
@@ -1132,11 +1140,14 @@ class VacuumCardEditor extends LitElement {
   }
 
   _titleChanged(ev) {
-    this._updateConfig('title', ev.target.value);
+    this._updateConfig('title', ev.target?.value ?? ev.detail?.value ?? '');
   }
 
   _switchChanged(ev) {
-    this._updateConfig(ev.target.configValue, ev.target.checked);
+    const key = ev.currentTarget.getAttribute('configValue');
+    if (key) {
+      this._updateConfig(key, !this._config[key]);
+    }
   }
 
   render() {
@@ -1151,14 +1162,14 @@ class VacuumCardEditor extends LitElement {
           .value=${config.entity}
           .includeDomains=${['vacuum']}
           @value-changed=${this._entityPicked}
-          label="Entity"
+          label="Staubsauger-Entity"
         ></ha-entity-picker>
 
         <ha-textfield
           .value=${config.title || ''}
-          label="Titel (optional)"
+          label="Titel"
           placeholder="z.B. Mein Saugroboter"
-          @change=${this._titleChanged}
+          @input=${this._titleChanged}
         ></ha-textfield>
 
         <div class="side-by-side">
@@ -1166,7 +1177,7 @@ class VacuumCardEditor extends LitElement {
             <ha-switch
               .checked=${config.show_title !== false}
               configValue="show_title"
-              @change=${this._switchChanged}
+              @click=${this._switchChanged}
             ></ha-switch>
           </ha-formfield>
 
@@ -1174,7 +1185,7 @@ class VacuumCardEditor extends LitElement {
             <ha-switch
               .checked=${config.animated !== false}
               configValue="animated"
-              @change=${this._switchChanged}
+              @click=${this._switchChanged}
             ></ha-switch>
           </ha-formfield>
         </div>
