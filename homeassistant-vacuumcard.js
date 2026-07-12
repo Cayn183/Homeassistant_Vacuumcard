@@ -781,9 +781,14 @@ class VacuumCard extends LitElement {
   _handleOutsideClick = (e) => {
     if (this._fanSpeedOpen) {
       const dropdown = this.shadowRoot?.querySelector('.dropdown-wrapper');
-      if (dropdown && !dropdown.contains(e.composedPath()[0])) {
-        this._fanSpeedOpen = false;
-        this.requestUpdate();
+      if (dropdown) {
+        // Ermittle das tatsächliche Klickziel (mit Fallback für Umgebungen ohne composedPath)
+        const target = e.composedPath ? e.composedPath()[0] : e.target;
+        // Prüfe, ob der Klick AUSSERHALB des dropdown-wrapper liegt
+        if (!dropdown.contains(target)) {
+          this._fanSpeedOpen = false;
+          this.requestUpdate();
+        }
       }
     }
   }
@@ -1255,13 +1260,6 @@ class VacuumCardEditor extends LitElement {
           label="Staubsauger-Entity"
         ></ha-entity-picker>
 
-        <ha-textfield
-          .value=${config.title || ''}
-          label="Titel"
-          placeholder="z.B. Mein Saugroboter"
-          @input=${this._titleChanged}
-        ></ha-textfield>
-
         <div class="side-by-side">
           <ha-formfield label="Titel anzeigen">
             <ha-switch
@@ -1279,6 +1277,15 @@ class VacuumCardEditor extends LitElement {
             ></ha-switch>
           </ha-formfield>
         </div>
+
+        ${config.show_title !== false ? html`
+          <ha-textfield
+            .value=${config.title || ''}
+            label="Titel"
+            placeholder="z.B. Mein Saugroboter"
+            @input=${this._titleChanged}
+          ></ha-textfield>
+        ` : ''}
 
         <ha-entity-picker
           .hass=${this.hass}
