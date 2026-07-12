@@ -586,6 +586,7 @@ class VacuumCard extends LitElement {
       name: config.name || '',
       show_title: config.show_title !== false,
       animated: config.animated !== false,
+      battery_entity: config.battery_entity || '',
     };
   }
 
@@ -605,12 +606,95 @@ class VacuumCard extends LitElement {
   }
 
   get _batteryLevel() {
+    // 1) Manuell konfigurierte battery_entity
+    if (this.config.battery_entity) {
+      const batteryState = this.hass?.states[this.config.battery_entity];
+      if (batteryState) {
+        let level = batteryState.state;
+        if (typeof level === 'number' && level <= 1 && level > 0) level = Math.round(level * 100);
+        const parsed = Number(level);
+        if (!isNaN(parsed)) return parsed;
+      }
+    }
+
+    // 2) Auto-Erkennung: Suche nach Sensor-Entity mit "battery" im selben Device
+    const autoEntity = this._findBatterySensorEntity();
+    if (autoEntity) {
+      const batteryState = this.hass?.states[autoEntity];
+      if (batteryState) {
+        let level = batteryState.state;
+        if (typeof level === 'number' && level <= 1 && level > 0) level = Math.round(level * 100);
+        const parsed = Number(level);
+        if (!isNaN(parsed)) return parsed;
+      }
+    }
+
+    // 3) Fallback: Attribute der Vacuum-Entity
     const attrs = this._stateObj?.attributes || {};
-    // Zahl direkt oder als String
     let level = attrs.battery_level ?? attrs.battery ?? attrs.battery_percentage ?? attrs.batteryLevel ?? 0;
-    // Manche Integrationen liefern 0-1 statt Prozent
     if (typeof level === 'number' && level <= 1 && level > 0) level = Math.round(level * 100);
     return Number(level) || 0;
+  }
+
+  /**
+   * Prüft, ob eine Entity-ID auf einen Batterie-Wert hindeutet
+   * (mehrere Sprachen, da HA-Backend-Sprache die ID beeinflussen kann).
+   */
+  _isBatteryEntityId(entityId) {
+    const id = entityId.toLowerCase();
+    // Englisch, Deutsch, Französisch, Spanisch, Italienisch, Niederländisch, Schwedisch
+    const keywords = ['battery', 'batterie', 'akku', 'batteria', 'batería', 'batterij', 'batteri'];
+    return keywords.some(kw => id.includes(kw));
+  }
+
+  /**
+   * Automatische Erkennung einer Batterie-Sensor-Entity,
+   * die zum selben Gerät wie der Staubsauger gehört.
+   */
+  _findBatterySensorEntity() {
+    if (!this.hass || !this._stateObj) return null;
+
+    const vacuumEntityId = this.config.entity;
+
+    // Versuche über das Entity-Registry (hass.entities) das Device zu finden
+    const entities = this.hass.entities;
+    const vacuumEntityEntry = entities?.[vacuumEntityId];
+    const deviceId = vacuumEntityEntry?.device_id;
+
+    if (deviceId && entities) {
+      // Suche nach Sensor-Entities mit demselben device_id
+      for (const [entityId, entry] of Object.entries(entities)) {
+        if (entry.device_id === deviceId &&
+            entityId.startsWith('sensor.') &&
+            this._isBatteryEntityId(entityId) &&
+            this.hass.states[entityId]) {
+          return entityId;
+        }
+      }
+    }
+
+    // Fallback: Namenskonvention - aus vacuum.XYZ wird sensor.XYZ_battery
+    const baseName = vacuumEntityId.replace(/^vacuum\./, '');
+    const suffixes = ['_battery', '_batterie', '_akku', '_battery_level', '_battery_level_sensor'];
+    for (const suffix of suffixes) {
+      const candidate = `sensor.${baseName}${suffix}`;
+      if (this.hass.states[candidate]) return candidate;
+    }
+
+    // Letzter Versuch: Durchsuche alle Sensor-States nach Batterie-Keyword
+    // die den vacuum-Namen als Substring enthalten
+    const vacuumName = baseName.toLowerCase();
+    const prefix = vacuumName.split('_')[0];
+    for (const entityId of Object.keys(this.hass.states)) {
+      if (entityId.startsWith('sensor.') &&
+          this._isBatteryEntityId(entityId) &&
+          entityId.toLowerCase().includes(prefix) &&
+          this.hass.states[entityId]) {
+        return entityId;
+      }
+    }
+
+    return null;
   }
 
   get _fanSpeed() {
@@ -1071,6 +1155,7 @@ class VacuumCard extends LitElement {
       title: 'Staubsauger',
       show_title: true,
       animated: true,
+      battery_entity: '',
     };
   }
 }
@@ -1118,6 +1203,7 @@ class VacuumCardEditor extends LitElement {
       title: config?.title || '',
       show_title: config?.show_title !== false,
       animated: config?.animated !== false,
+      battery_entity: config?.battery_entity || '',
     };
   }
 
@@ -1148,6 +1234,10 @@ class VacuumCardEditor extends LitElement {
     if (key) {
       this._updateConfig(key, !this._config[key]);
     }
+  }
+
+  _batteryEntityPicked(ev) {
+    this._updateConfig('battery_entity', ev.detail.value || '');
   }
 
   render() {
@@ -1189,6 +1279,15 @@ class VacuumCardEditor extends LitElement {
             ></ha-switch>
           </ha-formfield>
         </div>
+
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${config.battery_entity || ''}
+          .includeDomains=${['sensor']}
+          @value-changed=${this._batteryEntityPicked}
+          label="Batterie-Sensor (optional)"
+          placeholder="Automatisch erkennen"
+        ></ha-entity-picker>
       </div>
     `;
   }
