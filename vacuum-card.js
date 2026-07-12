@@ -1,0 +1,1400 @@
+/**
+ * Vacuum Control Card
+ * A custom Lovelace card for Home Assistant that provides
+ * a full-featured vacuum control panel inspired by the
+ * built-in more-info vacuum dialog.
+ *
+ * Author: Custom component
+ * Version: 1.0.0
+ */
+
+import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
+
+/* ---------- SVG Icons ---------- */
+const ICONS = {
+  play: 'M8,5.14V19.14L19,12.14L8,5.14Z',
+  stop: 'M18,18H6V6H18V18Z',
+  dock: 'M15 13L11 17V14H2V12H11V9L15 13M5 20V16H7V18H17V10.19L12 5.69L7.21 10H4.22L12 3L22 12H19V20H5Z',
+  locate: 'M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z',
+  spot: 'M22.08,11.04H20.08V4H13.05V2H11.04V4H4V11.04H2V13.05H4V20.08H11.04V22.08H13.05V20.08H20.08V13.05H22.08V11.04M18.07,18.07H13.05V16.06H11.04V18.07H6V13.05H8.03V11.04H6V6H11.04V8.03H13.05V6H18.07V11.04H16.06V13.05H18.07V18.07M13.05,12.05A1,1 0 0,1 12.05,13.05C11.5,13.05 11.04,12.6 11.04,12.05C11.04,11.5 11.5,11.04 12.05,11.04C12.6,11.04 13.05,11.5 13.05,12.05Z',
+  fan: 'M12,11A1,1 0 0,0 11,12A1,1 0 0,0 12,13A1,1 0 0,0 13,12A1,1 0 0,0 12,11M12.5,2C17,2 17.11,5.57 14.75,6.75C13.76,7.24 13.32,8.29 13.13,9.22C13.61,9.42 14.03,9.73 14.35,10.13C18.05,8.13 22.03,8.92 22.03,12.5C22.03,17 18.46,17.1 17.28,14.73C16.78,13.74 15.72,13.3 14.79,13.11C14.59,13.59 14.28,14 13.88,14.34C15.87,18.03 15.08,22 11.5,22C7,22 6.91,18.42 9.27,17.24C10.25,16.75 10.69,15.71 10.89,14.79C10.4,14.59 9.97,14.27 9.65,13.87C5.96,15.85 2,15.07 2,11.5C2,7 5.56,6.89 6.74,9.26C7.24,10.25 8.29,10.68 9.22,10.87C9.41,10.39 9.73,9.97 10.14,9.65C8.15,5.96 8.94,2 12.5,2Z',
+  'arrow-right': 'M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z',
+  battery: 'M16.67,4H15V2H9V4H7.33A1.33,1.33 0 0,0 6,5.33V20.66C6,21.4 6.6,22 7.33,22H16.66C17.4,22 18,21.4 18,20.67V5.33C18,4.6 17.4,4 16.67,4M11,20V14.5H9L13,7V12.5H15',
+  cleanAreas: 'M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M4 6L6 4H10.9L4 10.9V6M4 13.7L13.7 4H18.6L4 18.6V13.7M20 18L18 20H13.1L20 13.1V18M20 10.3L10.3 20H5.4L20 5.4V10.3Z',
+};
+
+/* ---------- Helper: render SVG Icon ---------- */
+function svgIcon(path, size = 24) {
+  return html`
+    <svg
+      preserveAspectRatio="xMidYMid meet"
+      focusable="false"
+      role="img"
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      style="width:${size}px;height:${size}px;"
+    >
+      <g>
+        <path class="primary-path" d="${path}"></path>
+      </g>
+    </svg>
+  `;
+}
+
+/* ---------- State helpers ---------- */
+function localize(state) {
+  const labels = {
+    docked: 'Gedockt',
+    cleaning: 'Reinigt',
+    paused: 'Pausiert',
+    idle: 'Bereit',
+    returning: 'Kehrt zurück',
+    error: 'Fehler',
+  };
+  return labels[state] || state;
+}
+
+function relativeTime(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'Vor ' + diff + ' Sekunden';
+  if (diff < 3600) return 'Vor ' + Math.floor(diff / 60) + ' Minuten';
+  if (diff < 86400) return 'Vor ' + Math.floor(diff / 3600) + ' Stunden';
+  return 'Vor ' + Math.floor(diff / 86400) + ' Tagen';
+}
+
+/* ---------- Vacuum Card ---------- */
+class VacuumCard extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      config: { type: Object },
+    };
+  }
+
+  static get styles() {
+    return css`
+      :host {
+        display: block;
+        font-family: var(--primary-font-family, 'Roboto', sans-serif);
+        --vacuum-color: var(--state-vacuum-docked-color, var(--state-vacuum-inactive-color, var(--state-inactive-color, #44739e)));
+        --card-background: var(--card-background-color, var(--ha-card-background, #fff));
+      }
+
+      .card {
+        background: var(--card-background);
+        border-radius: var(--ha-card-border-radius, 12px);
+        box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.12));
+        padding: 16px;
+        overflow: hidden;
+      }
+
+      /* --- Status Header --- */
+      .state-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .state-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .state-text {
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        margin: 0;
+      }
+
+      .last-changed {
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        margin: 2px 0 0 0;
+      }
+
+      .battery {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        color: var(--primary-text-color);
+      }
+
+      .battery svg {
+        fill: var(--primary-text-color);
+      }
+
+      /* --- Vacuum SVG --- */
+      .vacuum-svg-container {
+        display: flex;
+        justify-content: center;
+        margin: 8px 0 16px;
+      }
+
+      .vacuum-svg-container svg {
+        width: 200px;
+        height: 200px;
+        overflow: visible;
+      }
+
+      .glow {
+        animation: pulse-glow 3s ease-in-out infinite;
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 0.06; }
+        50% { opacity: 0.12; }
+      }
+
+      .vacuum-body-rotate {
+        transform-origin: 120px 120px;
+      }
+
+      .vacuum-body {
+        transform-origin: 120px 120px;
+      }
+
+      .brush-spokes line {
+        animation: brush-spin 1.5s linear infinite;
+        transform-origin: 174px 76px;
+      }
+
+      @keyframes brush-spin {
+        100% { transform: rotate(360deg); }
+      }
+
+      .particle {
+        animation: particle-float 2.5s ease-out infinite;
+      }
+
+      .p1 { animation-delay: 0s; }
+      .p2 { animation-delay: 0.3s; }
+      .p3 { animation-delay: 0.6s; }
+      .p4 { animation-delay: 0.9s; }
+      .p5 { animation-delay: 1.2s; }
+      .p6 { animation-delay: 1.5s; }
+      .p7 { animation-delay: 1.8s; }
+      .p8 { animation-delay: 2.1s; }
+
+      @keyframes particle-float {
+        0% { opacity: 0; transform: translate(0, 0) scale(0); }
+        20% { opacity: 0.6; }
+        100% { opacity: 0; transform: translate(var(--dx, 20px), var(--dy, -30px)) scale(1); }
+      }
+
+      .p1 { --dx: 30px; --dy: -20px; }
+      .p2 { --dx: -25px; --dy: -25px; }
+      .p3 { --dx: 20px; --dy: -35px; }
+      .p4 { --dx: -30px; --dy: -15px; }
+      .p5 { --dx: 35px; --dy: -25px; }
+      .p6 { --dx: -20px; --dy: -30px; }
+      .p7 { --dx: 15px; --dy: -40px; }
+      .p8 { --dx: -35px; --dy: -20px; }
+
+      .dock-indicator {
+        animation: dock-pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes dock-pulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+      }
+
+      .container.cleaning .vacuum-body-rotate {
+        animation: body-drift 0.8s ease-in-out infinite alternate;
+      }
+
+      .container.returning .vacuum-body-rotate {
+        animation: body-drift 0.5s ease-in-out infinite alternate;
+      }
+
+      @keyframes body-drift {
+        0% { transform: rotate(-1deg); }
+        100% { transform: rotate(1deg); }
+      }
+
+      /* --- Buttons --- */
+      .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 16px 0;
+        flex-wrap: wrap;
+      }
+
+      .control-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border: none;
+        border-radius: 50%;
+        background: var(--ha-button-background, var(--secondary-background-color, rgba(0,0,0,0.05)));
+        color: var(--primary-text-color);
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .control-btn:hover {
+        background: var(--ha-button-hover-background, rgba(0,0,0,0.1));
+      }
+
+      .control-btn:active {
+        transform: scale(0.92);
+      }
+
+      .control-btn[disabled] {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      .control-btn svg {
+        fill: var(--primary-text-color);
+        width: 24px;
+        height: 24px;
+      }
+
+      /* --- Select Menus (Fan speed & Cleaning mode) --- */
+      .select-container {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .select-menu, .clean-areas-btn {
+        flex: 1;
+        min-width: 140px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border: none;
+        border-radius: var(--ha-card-border-radius, 10px);
+        background: var(--secondary-background-color, rgba(0,0,0,0.03));
+        cursor: pointer;
+        transition: background 0.2s;
+        text-align: left;
+        color: var(--primary-text-color);
+      }
+
+      .select-menu:hover, .clean-areas-btn:hover {
+        background: var(--ha-button-hover-background, rgba(0,0,0,0.08));
+      }
+
+      .select-menu .icon, .clean-areas-btn .icon {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .select-menu .icon svg, .clean-areas-btn .icon svg {
+        fill: var(--state-icon-color, var(--primary-text-color));
+        width: 20px;
+        height: 20px;
+      }
+
+      .select-menu .content, .clean-areas-btn .content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .select-menu .content .label, .clean-areas-btn .content .label {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        margin: 0;
+        line-height: 1.3;
+      }
+
+      .select-menu .content .value, .clean-areas-btn .content .value {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0;
+        line-height: 1.3;
+      }
+
+      .clean-areas-btn .icon:last-child svg {
+        fill: var(--secondary-text-color);
+        width: 18px;
+        height: 18px;
+      }
+
+      /* --- Dropdown (fan speed) --- */
+      .dropdown-wrapper {
+        position: relative;
+        flex: 1;
+        min-width: 140px;
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: var(--card-background);
+        border-radius: var(--ha-card-border-radius, 10px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        padding: 4px 0;
+        display: none;
+        margin-top: 4px;
+      }
+
+      .dropdown-menu.open {
+        display: block;
+      }
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border: none;
+        background: none;
+        width: 100%;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--primary-text-color);
+        text-align: left;
+        transition: background 0.15s;
+      }
+
+      .dropdown-item:hover {
+        background: var(--secondary-background-color, rgba(0,0,0,0.05));
+      }
+
+      .dropdown-item.selected {
+        color: var(--primary-color, #03a9f4);
+        font-weight: 500;
+      }
+
+      /* --- Area Dialog --- */
+      .area-dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+      }
+
+      .area-dialog {
+        background: var(--card-background);
+        border-radius: var(--ha-card-border-radius, 16px);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        max-width: 420px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      .area-dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+
+      .area-dialog-header h3 {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        margin: 0;
+      }
+
+      .close-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: var(--secondary-background-color, rgba(0,0,0,0.05));
+        color: var(--primary-text-color);
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+
+      .close-btn:hover {
+        background: var(--secondary-background-color, rgba(0,0,0,0.1));
+      }
+
+      .area-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .area-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border: 2px solid var(--divider-color, rgba(0,0,0,0.08));
+        border-radius: var(--ha-card-border-radius, 12px);
+        background: var(--card-background);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        text-align: center;
+      }
+
+      .area-card:hover {
+        border-color: var(--primary-color, #03a9f4);
+        background: var(--primary-color, #03a9f4);
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 5%, var(--card-background));
+      }
+
+      .area-card.selected {
+        border-color: var(--primary-color, #03a9f4);
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 8%, var(--card-background));
+      }
+
+      .area-card .badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--primary-color, #03a9f4);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .area-card .area-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: var(--state-icon-color, var(--primary-text-color));
+        opacity: 0.6;
+      }
+
+      .area-card.selected .area-icon svg {
+        fill: var(--primary-color, #03a9f4);
+        opacity: 1;
+      }
+
+      .area-card .area-name {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        line-height: 1.2;
+      }
+
+      .area-card.selected .area-name {
+        color: var(--primary-color, #03a9f4);
+      }
+
+      .area-hint {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        margin: 0 0 16px 0;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .area-empty {
+        text-align: center;
+        padding: 24px 0;
+        color: var(--secondary-text-color);
+      }
+
+      .area-empty p {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+      }
+
+      .area-dialog-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .action-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: var(--ha-card-border-radius, 10px);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .action-btn.primary {
+        background: var(--primary-color, #03a9f4);
+        color: var(--text-primary-color, #fff);
+        flex: 1;
+      }
+
+      .action-btn.primary:hover {
+        opacity: 0.9;
+      }
+
+      .action-btn.primary[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .action-btn.secondary {
+        background: var(--secondary-background-color, rgba(0,0,0,0.05));
+        color: var(--primary-text-color);
+      }
+
+      .action-btn.secondary:hover {
+        background: var(--secondary-background-color, rgba(0,0,0,0.1));
+      }
+    `;
+  }
+
+  constructor() {
+    super();
+    this._fanSpeedOpen = false;
+    this._fanSpeedOptions = [];
+    this._showAreaDialog = false;
+    this._selectedAreas = [];
+  }
+
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error('Entity must be specified');
+    }
+    this.config = {
+      ...config,
+      name: config.name || '',
+      show_title: config.show_title !== false,
+      animated: config.animated !== false,
+    };
+  }
+
+  get _stateObj() {
+    return this.hass ? this.hass.states[this.config.entity] : null;
+  }
+
+  get _vacuumState() {
+    if (!this._stateObj) return 'unknown';
+    const state = this._stateObj.state;
+    if (state === 'docked') return 'docked';
+    if (state === 'cleaning' || ['on', 'cleaning'].includes(state)) return 'cleaning';
+    if (state === 'paused') return 'paused';
+    if (state === 'returning' || state === 'return_to_dock') return 'returning';
+    if (state === 'error') return 'error';
+    return 'idle';
+  }
+
+  get _batteryLevel() {
+    return this._stateObj?.attributes.battery_level ?? this._stateObj?.attributes.battery ?? 0;
+  }
+
+  get _fanSpeed() {
+    return this._stateObj?.attributes.fan_speed || this._stateObj?.attributes.fan_speed_level || '';
+  }
+
+  get _fanSpeedList() {
+    return this._stateObj?.attributes.fan_speed_list || [];
+  }
+
+  get _cleaningMode() {
+    return this._stateObj?.attributes.cleaning_mode || '';
+  }
+
+  get _rooms() {
+    if (!this._stateObj) return [];
+    // Roborock: attributes.rooms = [{id: 0, name: 'Wohnzimmer'}, ...]
+    const rooms = this._stateObj.attributes.rooms || this._stateObj.attributes.map_segments || [];
+    if (Array.isArray(rooms) && rooms.length > 0) return rooms;
+    // Fallback: try to parse from cleaned_rooms or other attributes
+    return [];
+  }
+
+  /* --- Service Calls --- */
+  _callService(service, data = {}) {
+    if (!this.hass || !this._stateObj) return;
+    this.hass.callService('vacuum', service, {
+      entity_id: this.config.entity,
+      ...data,
+    });
+  }
+
+  _start() { this._callService('start'); }
+  _stop() { this._callService('stop'); }
+  _pause() { this._callService('pause'); }
+  _startPause() {
+    if (this._vacuumState === 'cleaning') {
+      this._callService('pause');
+    } else {
+      this._callService('start');
+    }
+  }
+  _returnToDock() { this._callService('return_to_base'); }
+  _locate() { this._callService('locate'); }
+  _spotClean() { this._callService('clean_spot'); }
+  _setFanSpeed(speed) {
+    this._callService('set_fan_speed', { fan_speed: speed });
+    this._fanSpeedOpen = false;
+    this.requestUpdate();
+  }
+
+  _toggleFanSpeed() {
+    this._fanSpeedOpen = !this._fanSpeedOpen;
+    this.requestUpdate();
+  }
+
+  _handleOutsideClick = (e) => {
+    if (this._fanSpeedOpen) {
+      const dropdown = this.shadowRoot?.querySelector('.dropdown-wrapper');
+      if (dropdown && !dropdown.contains(e.composedPath()[0])) {
+        this._fanSpeedOpen = false;
+        this.requestUpdate();
+      }
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('click', this._handleOutsideClick);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener('click', this._handleOutsideClick);
+  }
+
+  /* --- Render --- */
+  render() {
+    if (!this.hass || !this._stateObj) {
+      return html`<ha-card><div class="card">Entity not available: ${this.config?.entity}</div></ha-card>`;
+    }
+
+    const state = this._vacuumState;
+    const battery = this._batteryLevel;
+    const fanSpeed = this._fanSpeed;
+    const fanSpeedList = this._fanSpeedList;
+    const lastChanged = this._stateObj.last_changed;
+
+    // Determine vacuum color based on state
+    const stateColors = {
+      docked: 'var(--state-vacuum-docked-color, var(--state-vacuum-inactive-color, var(--state-inactive-color, #44739e)))',
+      cleaning: 'var(--state-vacuum-cleaning-color, var(--state-vacuum-active-color, var(--state-active-color, #4caf50)))',
+      returning: 'var(--state-vacuum-returning-color, var(--state-vacuum-active-color, var(--state-active-color, #ff9800)))',
+      paused: 'var(--state-vacuum-paused-color, var(--state-vacuum-inactive-color, var(--state-inactive-color, #ff9800)))',
+      idle: 'var(--state-vacuum-inactive-color, var(--state-inactive-color, #44739e))',
+      error: 'var(--error-color, #f44336)',
+    };
+    const vacuumColor = stateColors[state] || stateColors.docked;
+
+    const canStart = state === 'idle' || state === 'docked' || state === 'paused';
+    const canStop = state === 'cleaning' || state === 'paused' || state === 'returning';
+
+    return html`
+      <ha-card>
+        <div class="card">
+          <!-- Title -->
+          ${this.config.show_title && this.config.title ? html`
+            <div class="card-header" style="padding:0 0 12px 0;font-size:18px;font-weight:500;color:var(--primary-text-color);">
+              ${this.config.title}
+            </div>
+          ` : ''}
+
+          <!-- State Header -->
+          <div class="state-header">
+            <div class="state-info">
+              <p class="state-text">${localize(state)}</p>
+              <p class="last-changed">
+                <ha-relative-time datetime="${lastChanged}" capitalize>
+                  ${relativeTime(lastChanged)}
+                </ha-relative-time>
+              </p>
+            </div>
+            <div class="battery">
+              <span>${battery} %</span>
+              ${svgIcon(ICONS.battery, 20)}
+            </div>
+          </div>
+
+          <!-- Vacuum SVG -->
+          <div class="vacuum-svg-container">
+            ${this._renderVacuumSVG(state, vacuumColor)}
+          </div>
+
+          <!-- Control Buttons -->
+          <div class="buttons">
+            <button class="control-btn" @click=${this._startPause} ?disabled=${!canStart && !canStop}
+              title="${state === 'cleaning' ? 'Pause' : 'Start'}">
+              ${state === 'cleaning' ? this._renderPauseIcon() : svgIcon(ICONS.play)}
+            </button>
+            <button class="control-btn" @click=${this._stop} ?disabled=${!canStop}
+              title="Stoppen">
+              ${svgIcon(ICONS.stop)}
+            </button>
+            <button class="control-btn" @click=${this._returnToDock}
+              title="Zur Basis zurückkehren">
+              ${svgIcon(ICONS.dock)}
+            </button>
+            <button class="control-btn" @click=${this._locate}
+              title="Lokalisieren">
+              ${svgIcon(ICONS.locate)}
+            </button>
+            <button class="control-btn" @click=${this._spotClean}
+              title="Fleck reinigen">
+              ${svgIcon(ICONS.spot)}
+            </button>
+          </div>
+
+          <!-- Select Controls -->
+          <div class="select-container">
+            <!-- Fan Speed -->
+            ${fanSpeedList.length > 0 ? html`
+              <div class="dropdown-wrapper">
+                <button class="select-menu" @click=${this._toggleFanSpeed}>
+                  <span class="icon">${svgIcon(ICONS.fan, 20)}</span>
+                  <span class="content">
+                    <p class="label">Fan speed</p>
+                    <p class="value">${fanSpeed || '—'}</p>
+                  </span>
+                </button>
+                <div class="dropdown-menu ${this._fanSpeedOpen ? 'open' : ''}">
+                  ${fanSpeedList.map(speed => html`
+                    <button class="dropdown-item ${speed === fanSpeed ? 'selected' : ''}"
+                      @click=${() => this._setFanSpeed(speed)}>
+                      ${speed}
+                    </button>
+                  `)}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Clean Areas -->
+            <button class="clean-areas-btn" @click=${this._openCleanAreas}>
+              <span class="icon">${svgIcon(ICONS.cleanAreas, 20)}</span>
+              <span class="content">
+                <p class="label">Reinigung</p>
+                <p class="value">${this._cleaningMode || 'Nach Bereich'}</p>
+              </span>
+              <span class="icon">${svgIcon(ICONS['arrow-right'], 18)}</span>
+            </button>
+          </div>
+
+          <!-- Area Selection Dialog -->
+          ${this._showAreaDialog ? this._renderAreaDialog() : ''}
+        </div>
+      </ha-card>
+    `;
+  }
+
+  _renderPauseIcon() {
+    return html`
+      <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:var(--primary-text-color);">
+        <g>
+          <path d="M14,19H18V5H14V19M6,19H10V5H6V19Z"></path>
+        </g>
+      </svg>
+    `;
+  }
+
+  _renderAreaDialog() {
+    const rooms = this._rooms;
+    const hasRooms = rooms.length > 0;
+
+    return html`
+      <div class="area-dialog-overlay" @click=${this._closeAreaDialog}>
+        <div class="area-dialog" @click=${(e) => e.stopPropagation()}>
+          <div class="area-dialog-header">
+            <h3>Reinigung nach Bereich</h3>
+            <button class="close-btn" @click=${this._closeAreaDialog}>✕</button>
+          </div>
+
+          ${hasRooms ? html`
+            <div class="area-grid">
+              ${rooms.map((room, index) => {
+                const roomName = room.name || room;
+                const roomId = room.name || room;
+                const isSelected = this._selectedAreas.includes(roomName);
+                const order = this._selectedAreas.indexOf(roomName) + 1;
+                return html`
+                  <div class="area-card ${isSelected ? 'selected' : ''}"
+                       @click=${() => this._toggleArea(roomName)}>
+                    ${isSelected ? html`<span class="badge">${order}</span>` : ''}
+                    <div class="area-icon">${svgIcon(ICONS.cleanAreas, 24)}</div>
+                    <div class="area-name">${roomName}</div>
+                  </div>
+                `;
+              })}
+            </div>
+            <p class="area-hint">
+              Die Reihenfolge, in der Bereiche gereinigt werden, wird von deinem
+              Staubsauger möglicherweise nicht unterstützt.
+            </p>
+            <div class="area-dialog-actions">
+              <button class="action-btn secondary" @click=${this._closeAreaDialog}>
+                Abbrechen
+              </button>
+              <button class="action-btn primary"
+                      ?disabled=${this._selectedAreas.length === 0}
+                      @click=${this._startAreaCleaning}>
+                ${this._selectedAreas.length > 0
+                  ? `${this._selectedAreas.length} Bereich${this._selectedAreas.length > 1 ? 'e' : ''} reinigen`
+                  : 'Bereiche auswählen'}
+              </button>
+            </div>
+          ` : html`
+            <div class="area-empty">
+              <p>Keine Bereiche verfügbar.</p>
+              <p class="area-hint">
+                Dein Staubsauger unterstützt möglicherweise keine
+                bereichsbasierte Reinigung, oder die Raumdaten sind nicht
+                verfügbar.
+              </p>
+            </div>
+            <div class="area-dialog-actions">
+              <button class="action-btn primary" @click=${this._closeAreaDialog}>
+                Schließen
+              </button>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
+  _renderVacuumSVG(state, color) {
+    const isActive = state === 'cleaning' || state === 'returning';
+    const containerClass = state;
+
+    return html`
+      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="vacuum-svg">
+        <defs>
+          <style>
+            .particle { animation: particle-float 2.5s ease-out infinite; }
+            .p1 { animation-delay: 0s; --dx: 30px; --dy: -20px; }
+            .p2 { animation-delay: 0.3s; --dx: -25px; --dy: -25px; }
+            .p3 { animation-delay: 0.6s; --dx: 20px; --dy: -35px; }
+            .p4 { animation-delay: 0.9s; --dx: -30px; --dy: -15px; }
+            .p5 { animation-delay: 1.2s; --dx: 35px; --dy: -25px; }
+            .p6 { animation-delay: 1.5s; --dx: -20px; --dy: -30px; }
+            .p7 { animation-delay: 1.8s; --dx: 15px; --dy: -40px; }
+            .p8 { animation-delay: 2.1s; --dx: -35px; --dy: -20px; }
+            @keyframes particle-float {
+              0% { opacity: 0; transform: translate(0, 0) scale(0); }
+              20% { opacity: 0.6; }
+              100% { opacity: 0; transform: translate(var(--dx, 20px), var(--dy, -30px)) scale(1); }
+            }
+            .glow { animation: pulse-glow 3s ease-in-out infinite; }
+            @keyframes pulse-glow {
+              0%, 100% { opacity: 0.04; }
+              50% { opacity: 0.1; }
+            }
+            ${isActive ? `
+              .vacuum-body-rotate { animation: body-drift 0.8s ease-in-out infinite alternate; transform-origin: 120px 120px; }
+              @keyframes body-drift { 0% { transform: rotate(-1deg); } 100% { transform: rotate(1deg); } }
+              .brush-spokes line { animation: brush-spin 1.5s linear infinite; transform-origin: 174px 76px; }
+              @keyframes brush-spin { 100% { transform: rotate(360deg); } }
+            ` : ''}
+            .dock-indicator { animation: dock-pulse 2s ease-in-out infinite; }
+            @keyframes dock-pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
+          </style>
+        </defs>
+
+        <!-- Glow -->
+        <circle cx="120" cy="120" r="110" class="glow" fill="${color}" opacity="0.06"></circle>
+
+        <g class="vacuum-body-rotate">
+          <g class="vacuum-body">
+            <!-- Brush right -->
+            <g class="brush brush-right">
+              <g class="brush-spokes">
+                <line x1="174" y1="76" x2="174" y2="64" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="174" y2="88" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="162" y2="76" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+                <line x1="174" y1="76" x2="186" y2="76" stroke="${color}" stroke-width="1.2" stroke-linecap="round" opacity="0.5"></line>
+              </g>
+              <circle cx="174" cy="76" r="2" fill="${color}" opacity="0.5"></circle>
+            </g>
+
+            <!-- Main body -->
+            <circle cx="120" cy="120" r="72" fill="var(--card-background-color, #fff)" stroke="${color}" stroke-width="2"></circle>
+            <circle cx="120" cy="120" r="66" fill="none" stroke="${color}" stroke-width="0.8" opacity="0.2"></circle>
+
+            <!-- Bumper -->
+            <path d="M 60 94 A 68 68 0 0 1 180 94" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" class="bumper"></path>
+
+            <!-- Nav lines -->
+            <g class="nav-lines" opacity="0.15">
+              <line x1="120" y1="56" x2="120" y2="74" stroke="${color}" stroke-width="1.5"></line>
+              <line x1="88" y1="63" x2="96" y2="78" stroke="${color}" stroke-width="1.5"></line>
+              <line x1="152" y1="63" x2="144" y2="78" stroke="${color}" stroke-width="1.5"></line>
+            </g>
+
+            <!-- LiDAR -->
+            <circle cx="120" cy="108" r="14" fill="var(--card-background-color, #fff)" stroke="${color}" stroke-width="2" class="lidar-housing"></circle>
+            <circle cx="120" cy="108" r="9" fill="none" stroke="${color}" stroke-width="0.8" opacity="0.25"></circle>
+
+            <!-- Power button -->
+            <circle cx="120" cy="140" r="8" fill="${color}" opacity="0.08" class="power-ring"></circle>
+            <circle cx="120" cy="140" r="4" fill="${color}" opacity="0.25" class="power-dot"></circle>
+          </g>
+        </g>
+
+        <!-- Particles (only when active) -->
+        ${isActive ? html`
+          <g class="particles">
+            <circle class="particle p1" cx="120" cy="120" r="2" fill="${color}"></circle>
+            <circle class="particle p2" cx="120" cy="120" r="1.5" fill="${color}"></circle>
+            <circle class="particle p3" cx="120" cy="120" r="1.5" fill="${color}"></circle>
+            <circle class="particle p4" cx="120" cy="120" r="2" fill="${color}"></circle>
+            <circle class="particle p5" cx="120" cy="120" r="1.5" fill="${color}"></circle>
+            <circle class="particle p6" cx="120" cy="120" r="1.5" fill="${color}"></circle>
+            <circle class="particle p7" cx="120" cy="120" r="1" fill="${color}"></circle>
+            <circle class="particle p8" cx="120" cy="120" r="1" fill="${color}"></circle>
+          </g>
+        ` : ''}
+
+        <!-- Dock indicator (when docked or returning) -->
+        ${state === 'docked' || state === 'returning' ? html`
+          <g class="dock-indicator">
+            <rect x="76" y="188" width="88" height="28" rx="8" fill="var(--card-background-color, #fff)" stroke="${color}" stroke-width="2"></rect>
+          </g>
+          <g class="return-path">
+            <polygon points="120,220 110,206 130,206" fill="${color}" stroke="${color}" stroke-width="2" stroke-linejoin="round" opacity="0.55"></polygon>
+          </g>
+        ` : ''}
+      </svg>
+    `;
+  }
+
+  _openCleanAreas() {
+    if (!this.hass || !this._stateObj) return;
+    this._selectedAreas = [];
+    this._showAreaDialog = true;
+    this.requestUpdate();
+  }
+
+  _closeAreaDialog() {
+    this._showAreaDialog = false;
+    this._selectedAreas = [];
+    this.requestUpdate();
+  }
+
+  _toggleArea(areaId) {
+    if (this._selectedAreas.includes(areaId)) {
+      this._selectedAreas = this._selectedAreas.filter(id => id !== areaId);
+    } else {
+      this._selectedAreas = [...this._selectedAreas, areaId];
+    }
+    this.requestUpdate();
+  }
+
+  _startAreaCleaning() {
+    if (!this.hass || !this._stateObj || this._selectedAreas.length === 0) return;
+    // Try Roborock-style: vacuum.send_command with app_segment_clean
+    const rooms = this._rooms;
+    if (rooms.length > 0) {
+      // Map area IDs to room segment IDs
+      const segmentIds = this._selectedAreas
+        .map(name => {
+          const room = rooms.find(r => r.name === name || r.id === name);
+          return room ? room.id : null;
+        })
+        .filter(id => id !== null);
+      if (segmentIds.length > 0) {
+        this._callService('send_command', {
+          command: 'app_segment_clean',
+          params: { segments: segmentIds },
+        });
+      }
+    }
+    this._closeAreaDialog();
+  }
+
+  static getConfigElement() {
+    return document.createElement('vacuum-card-editor');
+  }
+
+  static getStubConfig() {
+    return {
+      entity: '',
+      title: 'Staubsauger',
+      show_title: true,
+      animated: true,
+    };
+  }
+}
+
+customElements.define('vacuum-card', VacuumCard);
+
+/* ---------- Vacuum Card Editor ---------- */
+class VacuumCardEditor extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      config: { type: Object },
+      _config: { type: Object, state: true },
+    };
+  }
+
+  static get styles() {
+    return css`
+      :host {
+        display: block;
+        font-family: var(--primary-font-family, 'Roboto', sans-serif);
+      }
+
+      .editor-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 8px 0;
+      }
+
+      .form-section {
+        background: var(--card-background-color, var(--ha-card-background, #fff));
+        border-radius: var(--ha-card-border-radius, 12px);
+        box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.08));
+        padding: 16px;
+      }
+
+      .form-section h3 {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        margin: 0 0 16px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.1));
+      }
+
+      .field-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+
+      .field-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .field-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .field-description {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        margin: -2px 0 4px 0;
+        line-height: 1.4;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.05));
+      }
+
+      .toggle-row:last-child {
+        border-bottom: none;
+      }
+
+      .toggle-label {
+        font-size: 14px;
+        color: var(--primary-text-color);
+      }
+
+      .toggle-desc {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        margin-top: 2px;
+      }
+
+      .preview-section {
+        background: var(--card-background-color, var(--ha-card-background, #fff));
+        border-radius: var(--ha-card-border-radius, 12px);
+        box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.08));
+        padding: 16px;
+        overflow: hidden;
+      }
+
+      .preview-section h3 {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        margin: 0 0 12px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.1));
+      }
+
+      .preview-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--secondary-text-color);
+        background: var(--secondary-background-color, rgba(0,0,0,0.02));
+        border-radius: 8px;
+        border: 2px dashed var(--divider-color, rgba(0,0,0,0.1));
+      }
+
+      .preview-placeholder svg {
+        width: 48px;
+        height: 48px;
+        fill: var(--secondary-text-color);
+        opacity: 0.4;
+        margin-bottom: 12px;
+      }
+
+      .preview-placeholder p {
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .preview-placeholder .hint {
+        font-size: 12px;
+        margin-top: 6px;
+        opacity: 0.7;
+      }
+
+      ha-textfield {
+        width: 100%;
+      }
+
+      pre.code-preview {
+        background: var(--secondary-background-color, rgba(0,0,0,0.03));
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 12px;
+        font-family: 'Courier New', monospace;
+        color: var(--primary-text-color);
+        overflow-x: auto;
+        margin: 12px 0 0 0;
+        border: 1px solid var(--divider-color, rgba(0,0,0,0.08));
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    `;
+  }
+
+  constructor() {
+    super();
+    this._config = {};
+  }
+
+  setConfig(config) {
+    this._config = {
+      entity: config?.entity || '',
+      title: config?.title || '',
+      show_title: config?.show_title !== false,
+      animated: config?.animated !== false,
+    };
+  }
+
+  _valueChanged(ev) {
+    const newConfig = { ...this._config };
+
+    if (ev.detail?.value !== undefined) {
+      const target = ev.target;
+      if (target.configValue) {
+        newConfig[target.configValue] = ev.detail.value;
+      }
+    }
+
+    this._config = newConfig;
+    this._fireConfigChanged();
+  }
+
+  _toggleChanged(ev) {
+    const target = ev.target;
+    if (target.configValue) {
+      this._config = {
+        ...this._config,
+        [target.configValue]: target.checked,
+      };
+      this._fireConfigChanged();
+    }
+  }
+
+  _entityPicked(ev) {
+    this._config = {
+      ...this._config,
+      entity: ev.detail.value,
+    };
+    this._fireConfigChanged();
+  }
+
+  _inputChanged(ev) {
+    const target = ev.target;
+    if (target.configValue !== undefined) {
+      this._config = {
+        ...this._config,
+        [target.configValue]: target.value,
+      };
+      this._fireConfigChanged();
+    }
+  }
+
+  _fireConfigChanged() {
+    const event = new CustomEvent('config-changed', {
+      detail: { config: this._config },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
+  render() {
+    if (!this.hass) {
+      return html`
+        <div class="editor-container">
+          <div class="form-section">
+            <p style="color:var(--secondary-text-color);text-align:center;">
+              Lade…
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    const config = this._config;
+    const hasEntity = config.entity && this.hass.states[config.entity];
+
+    // Generate YAML preview
+    const yamlPreview = this._generateYaml(config);
+
+    return html`
+      <div class="editor-container">
+        <!-- Configuration Form -->
+        <div class="form-section">
+          <h3>⚙️ Konfiguration</h3>
+
+          <!-- Entity Picker -->
+          <div class="field-row">
+            <span class="field-label">Entity</span>
+            <p class="field-description">Wähle die Staubsauger-Entity aus</p>
+            <ha-entity-picker
+              .hass=${this.hass}
+              .value=${config.entity}
+              .includeEntities=${['vacuum']}
+              .configValue=${'entity'}
+              @value-changed=${this._entityPicked}
+            ></ha-entity-picker>
+          </div>
+
+          <!-- Title -->
+          <div class="field-row">
+            <span class="field-label">Titel</span>
+            <p class="field-description">Optionaler Titel, der über der Karte angezeigt wird</p>
+            <ha-textfield
+              .value=${config.title || ''}
+              .configValue=${'title'}
+              placeholder="z.B. Mein Saugroboter"
+              @input=${this._inputChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="form-section">
+          <h3>🎛️ Optionen</h3>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Titel anzeigen</div>
+              <div class="toggle-desc">Zeige den Titel oberhalb der Karte an</div>
+            </div>
+            <ha-switch
+              .checked=${config.show_title !== false}
+              .configValue=${'show_title'}
+              @change=${this._toggleChanged}
+            ></ha-switch>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Animationen</div>
+              <div class="toggle-desc">Aktiviere die SVG-Animationen (Bürsten, Partikel)</div>
+            </div>
+            <ha-switch
+              .checked=${config.animated !== false}
+              .configValue=${'animated'}
+              @change=${this._toggleChanged}
+            ></ha-switch>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="preview-section">
+          <h3>👁️ Vorschau</h3>
+
+          ${hasEntity ? html`
+            <vacuum-card
+              .hass=${this.hass}
+              .config=${config}
+              style="--ha-card-border-radius:10px;"
+            ></vacuum-card>
+          ` : html`
+            <div class="preview-placeholder">
+              <svg viewBox="0 0 24 24">
+                <path d="M12,11A1,1 0 0,0 11,12A1,1 0 0,0 12,13A1,1 0 0,0 13,12A1,1 0 0,0 12,11M12.5,2C17,2 17.11,5.57 14.75,6.75C13.76,7.24 13.32,8.29 13.13,9.22C13.61,9.42 14.03,9.73 14.35,10.13C18.05,8.13 22.03,8.92 22.03,12.5C22.03,17 18.46,17.1 17.28,14.73C16.78,13.74 15.72,13.3 14.79,13.11C14.59,13.59 14.28,14 13.88,14.34C15.87,18.03 15.08,22 11.5,22C7,22 6.91,18.42 9.27,17.24C10.25,16.75 10.69,15.71 10.89,14.79C10.4,14.59 9.97,14.27 9.65,13.87C5.96,15.85 2,15.07 2,11.5C2,7 5.56,6.89 6.74,9.26C7.24,10.25 8.29,10.68 9.22,10.87C9.41,10.39 9.73,9.97 10.14,9.65C8.15,5.96 8.94,2 12.5,2Z">
+              </svg>
+              <p>Wähle eine Staubsauger-Entity aus</p>
+              <p class="hint">Die Vorschau erscheint, sobald eine gültige Entity ausgewählt ist</p>
+            </div>
+          `}
+        </div>
+
+        <!-- YAML Config Preview -->
+        <div class="form-section">
+          <h3>📋 YAML-Konfiguration</h3>
+          <pre class="code-preview">${yamlPreview}</pre>
+        </div>
+      </div>
+    `;
+  }
+
+  _generateYaml(config) {
+    const lines = ['type: custom:vacuum-card'];
+    if (config.entity) lines.push(`entity: ${config.entity}`);
+    if (config.title) lines.push(`title: "${config.title}"`);
+    if (config.show_title === false) lines.push('show_title: false');
+    if (config.animated === false) lines.push('animated: false');
+    return lines.join('\n');
+  }
+}
+
+customElements.define('vacuum-card-editor', VacuumCardEditor);
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: 'vacuum-card',
+  name: 'Vacuum Control Card',
+  description: 'A full-featured vacuum control panel with animated visualization',
+  preview: true,
+});

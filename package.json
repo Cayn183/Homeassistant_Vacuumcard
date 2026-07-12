@@ -1,0 +1,17 @@
+{
+  "name": "vacuum-control-card",
+  "version": "1.0.0",
+  "description": "A custom Lovelace card for Home Assistant that provides a full-featured vacuum control panel with animated SVG visualization",
+  "main": "vacuum-card.js",
+  "scripts": {
+    "build": "cp vacuum-card.js dist/vacuum-card.js"
+  },
+  "keywords": [
+    "home-assistant",
+    "homeassistant",
+    "lovelace",
+    "custom-card",
+    "vacuum"
+  ],
+  "license": "MIT"
+}

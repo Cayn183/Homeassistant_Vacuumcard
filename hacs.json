@@ -1,0 +1,8 @@
+{
+  "name": "Vacuum Control Card",
+  "filename": "vacuum-card.js",
+  "render_readme": true,
+  "country": "DE",
+  "homeassistant": "2023.8.0",
+  "persistent_directory": "dist"
+}

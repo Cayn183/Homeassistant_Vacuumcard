@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vacuum Card - Vorschau</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+      background: #e8e8e8;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .header {
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 500;
+      color: #1c1c1c;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .preview-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .preview-item {
+      width: 380px;
+      flex-shrink: 0;
+    }
+
+    .preview-item .label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .state-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .state-btn {
+      padding: 6px 14px;
+      border: 1px solid #ccc;
+      border-radius: 16px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      color: #333;
+      transition: all 0.2s;
+    }
+
+    .state-btn:hover {
+      background: #f0f0f0;
+    }
+
+    .state-btn.active {
+      background: #03a9f4;
+      color: #fff;
+      border-color: #03a9f4;
+    }
+
+    .dark-mode {
+      background: #1c1c1c;
+    }
+
+    .dark-mode .header h1 { color: #fff; }
+    .dark-mode .header p { color: #aaa; }
+
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .mode-toggle button {
+      padding: 4px 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .mode-toggle button.active {
+      background: #333;
+      color: #fff;
+      border-color: #333;
+    }
+
+    .dark-mode .mode-toggle button.active {
+      background: #fff;
+      color: #333;
+      border-color: #fff;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🧹 Vacuum Control Card</h1>
+    <p>Vorschau der Custom Lovelace Card für Home Assistant.<br>
+    Wähle einen Zustand und simuliere verschiedene Szenarien.</p>
+  </div>
+
+  <div class="controls">
+    <div class="state-selector">
+      <button class="state-btn active" data-state="docked">🔵 Gedockt</button>
+      <button class="state-btn" data-state="cleaning">🟢 Reinigt</button>
+      <button class="state-btn" data-state="paused">🟡 Pausiert</button>
+      <button class="state-btn" data-state="returning">🟠 Kehrt zurück</button>
+      <button class="state-btn" data-state="idle">⚪ Bereit</button>
+      <button class="state-btn" data-state="error">🔴 Fehler</button>
+    </div>
+    <div class="mode-toggle">
+      <span>Modus:</span>
+      <button id="lightBtn" class="active">Hell</button>
+      <button id="darkBtn">Dunkel</button>
+    </div>
+  </div>
+
+  <div class="preview-grid">
+    <div class="preview-item">
+      <div class="label">🔋 Normale Ansicht</div>
+      <div id="preview-normal"></div>
+    </div>
+    <div class="preview-item">
+      <div class="label">📱 Schmales Layout</div>
+      <div id="preview-narrow" style="max-width:320px;margin:0 auto;"></div>
+    </div>
+  </div>
+
+  <!-- Mock HA state data for all vacuum states -->
+  <script>
+    // Mock data timestamps
+    const now = new Date();
+    const minutesAgo = (m) => new Date(now - m * 60000).toISOString();
+
+    const MOCK_ROOMS = [
+      { id: 0, name: 'Badezimmer' },
+      { id: 1, name: 'Büro' },
+      { id: 2, name: 'Flur' },
+      { id: 3, name: 'Küche' },
+      { id: 4, name: 'Schlafzimmer' },
+      { id: 5, name: 'Wohnzimmer' },
+    ];
+
+    const mockStates = {
+      docked: {
+        entity_id: 'vacuum.saugroboter',
+        state: 'docked',
+        attributes: {
+          battery_level: 100,
+          battery: 100,
+          fan_speed: 'Turbo',
+          fan_speed_list: ['Ruhig', 'Ausgewogen', 'Turbo', 'Max', 'Max plus', 'Aus', 'Benutzerdefiniert'],
+          cleaning_mode: 'Nach Bereich',
+          rooms: MOCK_ROOMS,
+          friendly_name: 'Saugroboter',
+          supported_features: 511,
+        },
+        last_changed: minutesAgo(43),
+        last_updated: minutesAgo(43),
+        context: { id: '1' },
+      },
+      cleaning: {
+        entity_id: 'vacuum.saugroboter',
+        state: 'cleaning',
+        attributes: {
+          battery_level: 72,
+          battery: 72,
+          fan_speed: 'Turbo',
+          fan_speed_list: ['Ruhig', 'Ausgewogen', 'Turbo', 'Max', 'Max plus', 'Aus', 'Benutzerdefiniert'],
+          cleaning_mode: 'Nach Bereich',
+          rooms: MOCK_ROOMS,
+          friendly_name: 'Saugroboter',
+          supported_features: 511,
+        },
+        last_changed: minutesAgo(12),
+        last_updated: minutesAgo(0.5),
+        context: { id: '2' },
+      },
+      paused: {
+        entity_id: 'vacuum.saugroboter',
+        state: 'paused',
+        attributes: {
+          battery_level: 68,
+          battery: 68,
+          fan_speed: 'Ausgewogen',
+          fan_speed_list: ['Ruhig', 'Ausgewogen', 'Turbo', 'Max', 'Max plus', 'Aus', 'Benutzerdefiniert'],
+          cleaning_mode: 'Nach Bereich',
+          rooms: MOCK_ROOMS,
+          friendly_name: 'Saugroboter',
+          supported_features: 511,
+        },
+        last_changed: minutesAgo(3),
+        last_updated: minutesAgo(0.2),
+        context: { id: '3' },
+      },
+      returning: {
+        entity_id: 'vacuum.saugroboter',
+        state: 'returning',
+        attributes: {
+          battery_level: 15,
+          battery: 15,
+          fan_speed: 'Turbo',
+          fan_speed_list: ['Ruhig', 'Ausgewogen', 'Turbo', 'Max', 'Max plus', 'Aus', 'Benutzerdefiniert'],
+          cleaning_mode: 'Nach Bereich',
+          rooms: MOCK_ROOMS,
+          friendly_name: 'Saugroboter',
+          supported_features: 511,
+        },
+        last_changed: minutesAgo(2),
+        last_updated: minutesAgo(0.1),
+        context: { id: '4' },
+      },
+      idle: {
+        entity_id: 'vacuum.saugroboter',
+        state: 'idle',
+        attributes: {
+          battery_level: 85,
+          battery: 85,
+          fan_speed: 'Ruhig',
+          fan_speed_list: ['Ruhig', 'Ausgewogen', 'Turbo', 'Max', 'Max plus', 'Aus', 'Benutzerdefiniert'],
+          rooms: MOCK_ROOMS,
+          friendly_name: 'Saugroboter',
+          supported_features: 511,
+        },
+        last_changed: minutesAgo(30),
+        last_updated: minutesAgo(30),
+        context: { id: '5' },
+      },
+      error: {
+        entity_id: 'vacuum.saugroboter',
+        state: 'error',
+        attributes: {
+          battery_level: 45,
+          battery: 45,
+          fan_speed: 'Aus',
+          fan_speed_list: ['Ruhig', 'Ausgewogen', 'Turbo', 'Max', 'Max plus', 'Aus', 'Benutzerdefiniert'],
+          rooms: MOCK_ROOMS,
+          error: 'Bürste blockiert',
+          friendly_name: 'Saugroboter',
+          supported_features: 511,
+        },
+        last_changed: minutesAgo(5),
+        last_updated: minutesAgo(5),
+        context: { id: '6' },
+      },
+    };
+
+    // Simple mock for HA's callService
+    function createMockHass(currentState) {
+      return {
+        states: {
+          'vacuum.saugroboter': currentState,
+        },
+        callService: (domain, service, data) => {
+          console.log(`Service call: ${domain}.${service}`, data);
+        },
+        connection: {
+          subscribe: () => () => {},
+          sendMessage: () => {},
+        },
+        config: {
+          latitude: 48.1372,
+          longitude: 11.5755,
+          unit_system: { length: 'km' },
+        },
+        theme: {},
+        selectedTheme: null,
+        localize: (str) => str,
+        language: 'de',
+      };
+    }
+
+    function renderPreview(stateKey) {
+      const stateObj = mockStates[stateKey];
+      if (!stateObj) return;
+
+      const hass = createMockHass(stateObj);
+      const config = {
+        entity: 'vacuum.saugroboter',
+        title: 'Mein Saugroboter',
+        show_title: true,
+        animated: true,
+      };
+
+      const containerNormal = document.getElementById('preview-normal');
+      const containerNarrow = document.getElementById('preview-narrow');
+
+      // Clear old content
+      containerNormal.innerHTML = '';
+      containerNarrow.innerHTML = '';
+
+      // Create normal card
+      const cardNormal = document.createElement('vacuum-card');
+      cardNormal.hass = hass;
+      cardNormal.config = config;
+      containerNormal.appendChild(cardNormal);
+
+      // Create narrow card
+      const cardNarrow = document.createElement('vacuum-card');
+      cardNarrow.hass = hass;
+      cardNarrow.config = { ...config, show_title: false };
+      containerNarrow.appendChild(cardNarrow);
+    }
+
+    // State selector buttons
+    document.querySelectorAll('.state-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.state-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderPreview(btn.dataset.state);
+      });
+    });
+
+    // Light/Dark mode
+    document.getElementById('lightBtn').addEventListener('click', () => {
+      document.body.classList.remove('dark-mode');
+      document.getElementById('lightBtn').classList.add('active');
+      document.getElementById('darkBtn').classList.remove('active');
+      // Re-render to apply theme colors
+      const activeBtn = document.querySelector('.state-btn.active');
+      renderPreview(activeBtn ? activeBtn.dataset.state : 'docked');
+    });
+
+    document.getElementById('darkBtn').addEventListener('click', () => {
+      document.body.classList.add('dark-mode');
+      document.getElementById('darkBtn').classList.add('active');
+      document.getElementById('lightBtn').classList.remove('active');
+      const activeBtn = document.querySelector('.state-btn.active');
+      renderPreview(activeBtn ? activeBtn.dataset.state : 'docked');
+    });
+
+    // Initial render
+    renderPreview('docked');
+  </script>
+
+  <!-- Load the card -->
+  <script type="module" src="vacuum-card.js"></script>
+</body>
+</html>
