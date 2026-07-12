@@ -1082,146 +1082,35 @@ class VacuumCardEditor extends LitElement {
     return css`
       :host {
         display: block;
-        font-family: var(--primary-font-family, 'Roboto', sans-serif);
       }
 
-      .editor-container {
+      .card-config {
+        direction: ltr;
+      }
+
+      .card-config ha-entity-picker {
+        margin-top: 8px;
+        display: block;
+      }
+
+      .card-config ha-textfield {
+        display: block;
+        margin-top: 8px;
+      }
+
+      .side-by-side {
         display: flex;
-        flex-direction: column;
-        gap: 24px;
-        padding: 8px 0;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 8px;
       }
 
-      .form-section {
-        background: var(--card-background-color, var(--ha-card-background, #fff));
-        border-radius: var(--ha-card-border-radius, 12px);
-        box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.08));
-        padding: 16px;
+      .side-by-side > * {
+        flex: 1;
       }
 
-      .form-section h3 {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-        margin: 0 0 16px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.1));
-      }
-
-      .field-row {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 16px;
-      }
-
-      .field-row:last-child {
-        margin-bottom: 0;
-      }
-
-      .field-label {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--secondary-text-color);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .field-description {
-        font-size: 11px;
-        color: var(--secondary-text-color);
-        margin: -2px 0 4px 0;
-        line-height: 1.4;
-      }
-
-      .toggle-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.05));
-      }
-
-      .toggle-row:last-child {
-        border-bottom: none;
-      }
-
-      .toggle-label {
-        font-size: 14px;
-        color: var(--primary-text-color);
-      }
-
-      .toggle-desc {
-        font-size: 11px;
-        color: var(--secondary-text-color);
-        margin-top: 2px;
-      }
-
-      .preview-section {
-        background: var(--card-background-color, var(--ha-card-background, #fff));
-        border-radius: var(--ha-card-border-radius, 12px);
-        box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.08));
-        padding: 16px;
-        overflow: hidden;
-      }
-
-      .preview-section h3 {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-        margin: 0 0 12px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.1));
-      }
-
-      .preview-placeholder {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px;
-        text-align: center;
-        color: var(--secondary-text-color);
-        background: var(--secondary-background-color, rgba(0,0,0,0.02));
-        border-radius: 8px;
-        border: 2px dashed var(--divider-color, rgba(0,0,0,0.1));
-      }
-
-      .preview-placeholder svg {
-        width: 48px;
-        height: 48px;
-        fill: var(--secondary-text-color);
-        opacity: 0.4;
-        margin-bottom: 12px;
-      }
-
-      .preview-placeholder p {
-        font-size: 14px;
-        margin: 0;
-      }
-
-      .preview-placeholder .hint {
-        font-size: 12px;
-        margin-top: 6px;
-        opacity: 0.7;
-      }
-
-      ha-textfield {
-        width: 100%;
-      }
-
-      pre.code-preview {
-        background: var(--secondary-background-color, rgba(0,0,0,0.03));
-        border-radius: 8px;
-        padding: 12px;
-        font-size: 12px;
-        font-family: 'Courier New', monospace;
-        color: var(--primary-text-color);
-        overflow-x: auto;
-        margin: 12px 0 0 0;
-        border: 1px solid var(--divider-color, rgba(0,0,0,0.08));
-        white-space: pre-wrap;
-        word-break: break-word;
+      .option {
+        margin-top: 8px;
       }
     `;
   }
@@ -1241,25 +1130,11 @@ class VacuumCardEditor extends LitElement {
   }
 
   _valueChanged(ev) {
-    const newConfig = { ...this._config };
-
-    if (ev.detail?.value !== undefined) {
-      const target = ev.target;
-      if (target.configValue) {
-        newConfig[target.configValue] = ev.detail.value;
-      }
-    }
-
-    this._config = newConfig;
-    this._fireConfigChanged();
-  }
-
-  _toggleChanged(ev) {
     const target = ev.target;
     if (target.configValue) {
       this._config = {
         ...this._config,
-        [target.configValue]: target.checked,
+        [target.configValue]: target.checked !== undefined ? target.checked : target.value,
       };
       this._fireConfigChanged();
     }
@@ -1273,17 +1148,6 @@ class VacuumCardEditor extends LitElement {
     this._fireConfigChanged();
   }
 
-  _inputChanged(ev) {
-    const target = ev.target;
-    if (target.configValue !== undefined) {
-      this._config = {
-        ...this._config,
-        [target.configValue]: target.value,
-      };
-      this._fireConfigChanged();
-    }
-  }
-
   _fireConfigChanged() {
     const event = new CustomEvent('config-changed', {
       detail: { config: this._config },
@@ -1295,121 +1159,49 @@ class VacuumCardEditor extends LitElement {
 
   render() {
     if (!this.hass) {
-      return html`
-        <div class="editor-container">
-          <div class="form-section">
-            <p style="color:var(--secondary-text-color);text-align:center;">
-              Lade…
-            </p>
-          </div>
-        </div>
-      `;
+      return html``;
     }
 
     const config = this._config;
-    const hasEntity = config.entity && this.hass.states[config.entity];
-
-    // Generate YAML preview
-    const yamlPreview = this._generateYaml(config);
 
     return html`
-      <div class="editor-container">
-        <!-- Configuration Form -->
-        <div class="form-section">
-          <h3>⚙️ Konfiguration</h3>
+      <div class="card-config">
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${config.entity}
+          .includeEntities=${['vacuum']}
+          .configValue=${'entity'}
+          @value-changed=${this._entityPicked}
+          label="Entity"
+        ></ha-entity-picker>
 
-          <!-- Entity Picker -->
-          <div class="field-row">
-            <span class="field-label">Entity</span>
-            <p class="field-description">Wähle die Staubsauger-Entity aus</p>
-            <ha-entity-picker
-              .hass=${this.hass}
-              .value=${config.entity}
-              .includeEntities=${['vacuum']}
-              .configValue=${'entity'}
-              @value-changed=${this._entityPicked}
-            ></ha-entity-picker>
-          </div>
+        <ha-textfield
+          .value=${config.title || ''}
+          .configValue=${'title'}
+          @input=${this._valueChanged}
+          label="Titel (optional)"
+          placeholder="z.B. Mein Saugroboter"
+        ></ha-textfield>
 
-          <!-- Title -->
-          <div class="field-row">
-            <span class="field-label">Titel</span>
-            <p class="field-description">Optionaler Titel, der über der Karte angezeigt wird</p>
-            <ha-textfield
-              .value=${config.title || ''}
-              .configValue=${'title'}
-              placeholder="z.B. Mein Saugroboter"
-              @input=${this._inputChanged}
-            ></ha-textfield>
-          </div>
-        </div>
-
-        <!-- Options -->
-        <div class="form-section">
-          <h3>🎛️ Optionen</h3>
-
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-label">Titel anzeigen</div>
-              <div class="toggle-desc">Zeige den Titel oberhalb der Karte an</div>
-            </div>
+        <div class="side-by-side">
+          <ha-formfield label="Titel anzeigen">
             <ha-switch
               .checked=${config.show_title !== false}
               .configValue=${'show_title'}
-              @change=${this._toggleChanged}
+              @change=${this._valueChanged}
             ></ha-switch>
-          </div>
+          </ha-formfield>
 
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-label">Animationen</div>
-              <div class="toggle-desc">Aktiviere die SVG-Animationen (Bürsten, Partikel)</div>
-            </div>
+          <ha-formfield label="Animationen">
             <ha-switch
               .checked=${config.animated !== false}
               .configValue=${'animated'}
-              @change=${this._toggleChanged}
+              @change=${this._valueChanged}
             ></ha-switch>
-          </div>
-        </div>
-
-        <!-- Live Preview -->
-        <div class="preview-section">
-          <h3>👁️ Vorschau</h3>
-
-          ${hasEntity ? html`
-            <homeassistant-vacuumcard
-              .hass=${this.hass}
-              .config=${config}
-              style="--ha-card-border-radius:10px;"
-            ></homeassistant-vacuumcard>
-          ` : html`
-            <div class="preview-placeholder">
-              <svg viewBox="0 0 24 24">
-                <path d="M12,11A1,1 0 0,0 11,12A1,1 0 0,0 12,13A1,1 0 0,0 13,12A1,1 0 0,0 12,11M12.5,2C17,2 17.11,5.57 14.75,6.75C13.76,7.24 13.32,8.29 13.13,9.22C13.61,9.42 14.03,9.73 14.35,10.13C18.05,8.13 22.03,8.92 22.03,12.5C22.03,17 18.46,17.1 17.28,14.73C16.78,13.74 15.72,13.3 14.79,13.11C14.59,13.59 14.28,14 13.88,14.34C15.87,18.03 15.08,22 11.5,22C7,22 6.91,18.42 9.27,17.24C10.25,16.75 10.69,15.71 10.89,14.79C10.4,14.59 9.97,14.27 9.65,13.87C5.96,15.85 2,15.07 2,11.5C2,7 5.56,6.89 6.74,9.26C7.24,10.25 8.29,10.68 9.22,10.87C9.41,10.39 9.73,9.97 10.14,9.65C8.15,5.96 8.94,2 12.5,2Z">
-              </svg>
-              <p>Wähle eine Staubsauger-Entity aus</p>
-              <p class="hint">Die Vorschau erscheint, sobald eine gültige Entity ausgewählt ist</p>
-            </div>
-          `}
-        </div>
-
-        <!-- YAML Config Preview -->
-        <div class="form-section">
-          <h3>📋 YAML-Konfiguration</h3>
-          <pre class="code-preview">${yamlPreview}</pre>
+          </ha-formfield>
         </div>
       </div>
     `;
-  }
-
-  _generateYaml(config) {
-    const lines = ['type: custom:vacuum-card'];
-    if (config.entity) lines.push(`entity: ${config.entity}`);
-    if (config.title) lines.push(`title: "${config.title}"`);
-    if (config.show_title === false) lines.push('show_title: false');
-    if (config.animated === false) lines.push('animated: false');
-    return lines.join('\n');
   }
 }
 
