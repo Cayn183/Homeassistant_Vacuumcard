@@ -173,12 +173,12 @@
     const minutesAgo = (m) => new Date(now - m * 60000).toISOString();
 
     const MOCK_ROOMS = [
-      { id: 0, name: 'Badezimmer' },
-      { id: 1, name: 'Büro' },
-      { id: 2, name: 'Flur' },
-      { id: 3, name: 'Küche' },
-      { id: 4, name: 'Schlafzimmer' },
-      { id: 5, name: 'Wohnzimmer' },
+      { segmentId: 16, iotId: '12263986', rawName: 'Wohnzimmer' },
+      { segmentId: 17, iotId: '12263987', rawName: 'Schlafzimmer' },
+      { segmentId: 18, iotId: '12264013', rawName: 'Arbeitszimmer' },
+      { segmentId: 19, iotId: '12264005', rawName: 'Küche' },
+      { segmentId: 21, iotId: '12265406', rawName: 'Badezimmer' },
+      { segmentId: 22, iotId: '12264017', rawName: 'Flur' },
     ];
 
     const mockStates = {

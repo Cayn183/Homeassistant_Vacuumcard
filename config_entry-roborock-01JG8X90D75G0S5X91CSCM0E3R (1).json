@@ -1,0 +1,691 @@
+{
+  "home_assistant": {
+    "arch": "x86_64",
+    "dev": false,
+    "docker": true,
+    "hassio": true,
+    "installation_type": "Home Assistant OS",
+    "os_name": "Linux",
+    "os_version": "6.18.37-haos",
+    "python_version": "3.14.6",
+    "timezone": "Europe/Berlin",
+    "version": "2026.7.1",
+    "virtualenv": false,
+    "container_arch": "amd64",
+    "supervisor": "2026.06.2",
+    "host_os": "Home Assistant OS 18.1",
+    "docker_version": "29.5.3",
+    "chassis": "vm",
+    "run_as_root": true
+  },
+  "custom_components": {
+    "ms365_calendar": {
+      "documentation": "https://github.com/RogerSelwyn/MS365-Calendar",
+      "version": "v1.11.1",
+      "requirements": [
+        "O365>=2.1.4",
+        "BeautifulSoup4>=4.10.0",
+        "portalocker>=3.1.1",
+        "ical>=10.0.0",
+        "oauthlib"
+      ]
+    },
+    "browser_mod": {
+      "documentation": "https://github.com/thomasloven/hass-browser_mod/blob/master/README.md",
+      "version": "2.13.3",
+      "requirements": []
+    },
+    "import_statistics": {
+      "documentation": "https://github.com/klausj1/homeassistant-statistics",
+      "version": "5.1.0",
+      "requirements": [
+        "pandas>=2.0.0"
+      ]
+    },
+    "ms365_todo": {
+      "documentation": "https://github.com/RogerSelwyn/MS365-ToDo",
+      "version": "v1.11.1",
+      "requirements": [
+        "O365>=2.1.9",
+        "BeautifulSoup4>=4.10.0",
+        "portalocker>=3.1.1",
+        "oauthlib"
+      ]
+    },
+    "alexa_media": {
+      "documentation": "https://github.com/alandtse/alexa_media_player/wiki",
+      "version": "5.15.6",
+      "requirements": [
+        "alexapy==1.29.25",
+        "packaging>=20.3",
+        "wrapt>=1.14.0",
+        "dictor>=0.1.12,<0.2"
+      ]
+    },
+    "nodered": {
+      "documentation": "https://zachowj.github.io/node-red-contrib-home-assistant-websocket/guide/custom_integration/",
+      "version": "4.2.3",
+      "requirements": []
+    },
+    "homebox": {
+      "documentation": "https://github.com/JeffreyDissmann/ha-homebox#readme",
+      "version": "0.5.1",
+      "requirements": []
+    },
+    "hacs": {
+      "documentation": "https://hacs.xyz/docs/use/",
+      "version": "2.0.5",
+      "requirements": [
+        "aiogithubapi>=22.10.1"
+      ]
+    }
+  },
+  "integration_manifest": {
+    "domain": "roborock",
+    "name": "Roborock",
+    "codeowners": [
+      "Lash-L",
+      "allenporter"
+    ],
+    "config_flow": true,
+    "dhcp": [
+      {
+        "macaddress": "249E7D*"
+      },
+      {
+        "macaddress": "B04A39*"
+      },
+      {
+        "hostname": "roborock-*"
+      }
+    ],
+    "documentation": "https://www.home-assistant.io/integrations/roborock",
+    "integration_type": "hub",
+    "iot_class": "local_polling",
+    "loggers": [
+      "roborock"
+    ],
+    "quality_scale": "silver",
+    "requirements": [
+      "python-roborock==5.22.0",
+      "vacuum-map-parser-roborock==0.1.5"
+    ],
+    "is_built_in": true,
+    "overwrites_built_in": false
+  },
+  "setup_times": {
+    "null": {
+      "setup": 0.0019727589096874
+    },
+    "01JG8X90D75G0S5X91CSCM0E3R": {
+      "wait_import_platforms": -0.2490274739684537,
+      "config_entry_setup": 0.8766949740238488
+    }
+  },
+  "data": {
+    "config_entry": {
+      "base_url": "https://euiot.roborock.com",
+      "user_data": {
+        "country": "DE",
+        "countrycode": "49",
+        "nickname": "**REDACTED**",
+        "region": "eu",
+        "rriot": {
+          "h": "**REDACTED**",
+          "k": "**REDACTED**",
+          "r": {
+            "a": "https://api-eu.roborock.com",
+            "l": "https://wood-eu.roborock.com",
+            "m": "ssl://mqtt-eu-5.roborock.com:8883",
+            "r": "EU"
+          },
+          "s": "**REDACTED**",
+          "u": "**REDACTED**"
+        },
+        "rruid": "**REDACTED**",
+        "token": "**REDACTED**",
+        "tuyaDeviceState": 0,
+        "uid": "**REDACTED**"
+      },
+      "username": "**REDACTED**"
+    },
+    "coordinators": {
+      "**REDACTED-0**": {
+        "device": {
+          "duid": "******Osrst",
+          "name": "**REDACTED**",
+          "localKey": "**REDACTED**",
+          "productId": "**REDACTED**",
+          "fv": "02.20.30",
+          "activeTime": 1685634061,
+          "timeZoneId": "Europe/Berlin",
+          "iconUrl": "",
+          "share": false,
+          "online": true,
+          "pv": "1.0",
+          "tuyaMigrated": false,
+          "sn": "**REDACTED**",
+          "featureSet": "2247395306799103",
+          "newFeatureSet": "00000048009EFFFE",
+          "deviceStatus": {
+            "121": 8,
+            "122": 100,
+            "123": 103,
+            "124": 202,
+            "125": 49,
+            "126": 78,
+            "127": 0,
+            "128": 0,
+            "133": 1,
+            "134": 0,
+            "120": 0
+          },
+          "silentOtaSwitch": false,
+          "f": false,
+          "createTime": 1685634061
+        },
+        "product": {
+          "id": "2rqIfLiubPlddpYoWfBTl7",
+          "name": "**REDACTED**",
+          "model": "roborock.vacuum.a70",
+          "category": "robot.vacuum.cleaner",
+          "capability": 0,
+          "schema": [
+            {
+              "id": 101,
+              "name": "rpc_request",
+              "code": "rpc_request",
+              "mode": "rw",
+              "type": "RAW"
+            },
+            {
+              "id": 102,
+              "name": "rpc_response",
+              "code": "rpc_response",
+              "mode": "rw",
+              "type": "RAW"
+            },
+            {
+              "id": 120,
+              "name": "\u9519\u8bef\u4ee3\u7801",
+              "code": "error_code",
+              "mode": "ro",
+              "type": "ENUM",
+              "property": "{\"range\": [\"\"]}"
+            },
+            {
+              "id": 121,
+              "name": "\u8bbe\u5907\u72b6\u6001",
+              "code": "state",
+              "mode": "ro",
+              "type": "ENUM",
+              "property": "{\"range\": [\"\"]}"
+            },
+            {
+              "id": 122,
+              "name": "\u8bbe\u5907\u7535\u91cf",
+              "code": "battery",
+              "mode": "ro",
+              "type": "ENUM",
+              "property": "{\"range\": [\"\"]}"
+            },
+            {
+              "id": 123,
+              "name": "\u6e05\u626b\u6a21\u5f0f",
+              "code": "fan_power",
+              "mode": "rw",
+              "type": "ENUM",
+              "property": "{\"range\": [\"\"]}"
+            },
+            {
+              "id": 124,
+              "name": "\u62d6\u5730\u6a21\u5f0f",
+              "code": "water_box_mode",
+              "mode": "rw",
+              "type": "ENUM",
+              "property": "{\"range\": [\"\"]}"
+            },
+            {
+              "id": 125,
+              "name": "\u4e3b\u5237\u5bff\u547d",
+              "code": "main_brush_life",
+              "mode": "rw",
+              "type": "VALUE",
+              "property": "{\"max\": 100, \"min\": 0, \"step\": 1, \"unit\": \"null\", \"scale\": 1}"
+            },
+            {
+              "id": 126,
+              "name": "\u8fb9\u5237\u5bff\u547d",
+              "code": "side_brush_life",
+              "mode": "rw",
+              "type": "VALUE",
+              "property": "{\"max\": 100, \"min\": 0, \"step\": 1, \"unit\": \"null\", \"scale\": 1}"
+            },
+            {
+              "id": 127,
+              "name": "\u6ee4\u7f51\u5bff\u547d",
+              "code": "filter_life",
+              "mode": "rw",
+              "type": "VALUE",
+              "property": "{\"max\": 100, \"min\": 0, \"step\": 1, \"unit\": \"null\", \"scale\": 1}"
+            },
+            {
+              "id": 128,
+              "name": "\u989d\u5916\u72b6\u6001",
+              "code": "additional_props",
+              "mode": "ro",
+              "type": "RAW"
+            },
+            {
+              "id": 130,
+              "name": "\u5b8c\u6210\u4e8b\u4ef6",
+              "code": "task_complete",
+              "mode": "ro",
+              "type": "RAW"
+            },
+            {
+              "id": 131,
+              "name": "\u7535\u91cf\u4e0d\u8db3\u4efb\u52a1\u53d6\u6d88",
+              "code": "task_cancel_low_power",
+              "mode": "ro",
+              "type": "RAW"
+            },
+            {
+              "id": 132,
+              "name": "\u8fd0\u52a8\u4e2d\u4efb\u52a1\u53d6\u6d88",
+              "code": "task_cancel_in_motion",
+              "mode": "ro",
+              "type": "RAW"
+            },
+            {
+              "id": 133,
+              "name": "\u5145\u7535\u72b6\u6001",
+              "code": "charge_status",
+              "mode": "ro",
+              "type": "RAW"
+            },
+            {
+              "id": 134,
+              "name": "\u70d8\u5e72\u72b6\u6001",
+              "code": "drying_status",
+              "mode": "ro",
+              "type": "RAW"
+            },
+            {
+              "id": 135,
+              "name": "\u79bb\u7ebf\u539f\u56e0\u7ec6\u5206",
+              "code": "offline_status",
+              "mode": "ro",
+              "type": "RAW"
+            }
+          ]
+        },
+        "traits": {
+          "status": {
+            "msgVer": 2,
+            "msgSeq": 700,
+            "state": 8,
+            "battery": 100,
+            "cleanTime": 4,
+            "cleanArea": 0,
+            "errorCode": 0,
+            "mapPresent": 1,
+            "inCleaning": 0,
+            "inReturning": 0,
+            "inFreshState": 1,
+            "labStatus": 1,
+            "waterBoxStatus": 1,
+            "backType": -1,
+            "washPhase": 0,
+            "washReady": 0,
+            "fanPower": 103,
+            "dndEnabled": 0,
+            "mapStatus": 3,
+            "isLocating": 0,
+            "lockStatus": 0,
+            "waterBoxMode": 202,
+            "waterBoxCarriageStatus": 1,
+            "mopForbiddenEnable": 1,
+            "cameraStatus": 387,
+            "isExploring": 0,
+            "adbumperStatus": [
+              0,
+              0,
+              0
+            ],
+            "waterShortageStatus": 0,
+            "dockType": 7,
+            "dustCollectionStatus": 0,
+            "autoDustCollection": 1,
+            "avoidCount": 0,
+            "mopMode": 300,
+            "debugMode": 0,
+            "collisionAvoidStatus": 1,
+            "switchMapMode": 0,
+            "dockErrorStatus": 0,
+            "chargeStatus": 1,
+            "unsaveMapReason": 4,
+            "unsaveMapFlag": 0,
+            "washStatus": 0,
+            "dryStatus": 0,
+            "rdt": 0,
+            "cleanPercent": 0,
+            "rss": 2,
+            "dss": 2729,
+            "commonStatus": 2,
+            "lastCleanT": 1783839783
+          },
+          "dnd": {
+            "startHour": 22,
+            "startMinute": 0,
+            "endHour": 6,
+            "endMinute": 0,
+            "enabled": 1
+          },
+          "clean_summary": {
+            "cleanTime": 675737,
+            "cleanArea": 8286677500,
+            "cleanCount": 266,
+            "dustCollectionCount": 228,
+            "records": [
+              1783839782,
+              1783342615,
+              1783310156,
+              1783059976,
+              1781275088,
+              1779169330,
+              1779011817,
+              1778005143,
+              1777437260,
+              1776146237,
+              1775627002,
+              1774338053,
+              1774337318,
+              1773822345,
+              1772273189,
+              1770551390,
+              1770549788,
+              1768547572,
+              1768546506,
+              1768376019
+            ]
+          },
+          "sound_volume": {
+            "volume": 90
+          },
+          "rooms": {
+            "rooms": [
+              {
+                "segmentId": 16,
+                "iotId": "12263986",
+                "rawName": "Wohnzimmer"
+              },
+              {
+                "segmentId": 17,
+                "iotId": "12263987",
+                "rawName": "Schlafzimmer"
+              },
+              {
+                "segmentId": 18,
+                "iotId": "12264013",
+                "rawName": "Arbeitszimmer"
+              },
+              {
+                "segmentId": 19,
+                "iotId": "12264005",
+                "rawName": "K\u00fcche"
+              },
+              {
+                "segmentId": 21,
+                "iotId": "12265406",
+                "rawName": "Badezimmer"
+              },
+              {
+                "segmentId": 22,
+                "iotId": "12264017",
+                "rawName": "Flur"
+              }
+            ]
+          },
+          "maps": {
+            "maxMultiMap": 1,
+            "maxBakMap": 1,
+            "multiMapCount": 1,
+            "mapInfo": [
+              {
+                "mapFlag": 0,
+                "name": "**REDACTED**",
+                "addTime": 1783068088,
+                "length": 7,
+                "bakMaps": [
+                  {
+                    "addTime": 1722161010
+                  }
+                ]
+              }
+            ]
+          },
+          "map_content": {
+            "imageContent": "**REDACTED**",
+            "mapData": "**REDACTED**",
+            "rawApiResponse": "**REDACTED**"
+          },
+          "consumables": {
+            "mainBrushWorkTime": 551267,
+            "sideBrushWorkTime": 161028,
+            "filterWorkTime": 551267,
+            "filterElementWorkTime": 0,
+            "sensorDirtyTime": 161028,
+            "strainerWorkTimes": 128,
+            "dustCollectionWorkTimes": 228,
+            "cleaningBrushWorkTimes": 128
+          },
+          "device_features": {
+            "isShowCleanFinishReasonSupported": true,
+            "isReSegmentSupported": true,
+            "isVideoMonitorSupported": true,
+            "isAnyStateTransitGotoSupported": true,
+            "isFwFilterObstacleSupported": true,
+            "isVideoSettingSupported": true,
+            "isIgnoreUnknownMapObjectSupported": true,
+            "isSetChildSupported": true,
+            "isCarpetSupported": true,
+            "isRecordAllowed": true,
+            "isMopPathSupported": true,
+            "isMultiMapSegmentTimerSupported": true,
+            "isCurrentMapRestoreEnabled": true,
+            "isRoomNameSupported": true,
+            "isShakeMopSetSupported": true,
+            "isMapBeautifyInternalDebugSupported": true,
+            "isNewDataForCleanHistory": true,
+            "isNewDataForCleanHistoryDetail": true,
+            "isFlowLedSettingSupported": false,
+            "isDustCollectionSettingSupported": true,
+            "isRpcRetrySupported": true,
+            "isAvoidCollisionSupported": true,
+            "isSupportSetSwitchMapMode": true,
+            "isMapCarpetAddSupport": true,
+            "isCustomWaterBoxDistanceSupported": false,
+            "isSupportSmartScene": true,
+            "isSupportFloorEdit": true,
+            "isSupportFurniture": true,
+            "isWashThenChargeCmdSupported": true,
+            "isSupportRoomTag": true,
+            "isSupportQuickMapBuilder": true,
+            "isSupportSmartGlobalCleanWithCustomMode": true,
+            "isCarefulSlowMopSupported": true,
+            "isEggModeSupportedFromNewFeatures": false,
+            "isCarpetShowOnMap": true,
+            "isSupportedValleyElectricity": true,
+            "isUnsaveMapReasonSupported": true,
+            "isSupportedDrying": true,
+            "isSupportedDownloadTestVoice": true,
+            "isSupportBackupMap": true,
+            "isSupportCustomModeInCleaning": true,
+            "isSupportRemoteControlInCall": false,
+            "isSupportSetVolumeInCall": false,
+            "isSupportCleanEstimate": true,
+            "isSupportCustomDnd": true,
+            "isCarpetDeepCleanSupported": true,
+            "isSupportStuckZone": true,
+            "isSupportCustomDoorSill": true,
+            "isWifiManageSupported": true,
+            "isCleanRouteFastModeSupported": true,
+            "isSupportCliffZone": true,
+            "isSupportSmartDoorSill": true,
+            "isSupportFloorDirection": true,
+            "isBackChargeAutoWashSupported": true,
+            "isSupportIncrementalMap": false,
+            "isOfflineMapSupported": true,
+            "isSuperDeepWashSupported": true,
+            "isCes2022Supported": false,
+            "isDssBelievable": true,
+            "isMainBrushUpDownSupportedFromStr": true,
+            "isGotoPureCleanPathSupported": true,
+            "isWaterUpDownDrainSupported": true,
+            "isSettingCarpetFirstSupported": true,
+            "isCleanRouteDeepSlowPlusSupported": false,
+            "isDynamicallySkipCleanZoneSupported": false,
+            "isDynamicallyAddCleanZonesSupported": false,
+            "isLeftWaterDrainSupported": false,
+            "isCleanCountSettingSupported": false,
+            "isCornerCleanModeSupported": false,
+            "isTwoKeyRealTimeVideoSupported": false,
+            "isTwoKeyRtvInChargingSupported": false,
+            "isDirtyReplenishCleanSupported": false,
+            "isAutoDeliveryFieldInGlobalStatusSupported": true,
+            "isAvoidCollisionModeSupported": false,
+            "isVoiceControlSupported": false,
+            "isNewEndpointSupported": true,
+            "isPumpingWaterSupported": false,
+            "isCornerMopStretchSupported": false,
+            "isHotWashTowelSupported": false,
+            "isFloorDirCleanAnyTimeSupported": false,
+            "isPetSuppliesDeepCleanSupported": false,
+            "isMopShakeWaterMaxSupported": false,
+            "isExactCustomModeSupported": false,
+            "isVideoPatrolSupported": false,
+            "isCarpetCustomCleanSupported": false,
+            "isPetSnapshotSupported": false,
+            "isCustomCleanModeCountSupported": false,
+            "isNewAiRecognitionSupported": false,
+            "isAutoCollection2Supported": false,
+            "isRightBrushStretchSupported": false,
+            "isSmartCleanModeSetSupported": false,
+            "isDirtyObjectDetectSupported": false,
+            "isNoNeedCarpetPressSetSupported": false,
+            "isVoiceControlLedSupported": false,
+            "isWaterLeakCheckSupported": false,
+            "isMinBattery15ToCleanTaskSupported": false,
+            "isGapDeepCleanSupported": false,
+            "isObjectDetectCheckSupported": false,
+            "isIdentifyRoomSupported": false,
+            "isMatterSupported": false,
+            "isWorkdayHolidaySupported": false,
+            "isCleanDirectStatusSupported": false,
+            "isMapEraserSupported": false,
+            "isOptimizeBatterySupported": false,
+            "isActivateVideoChargingAndStandbySupported": false,
+            "isCarpetLongHairedSupported": false,
+            "isCleanHistoryTimeLineSupported": false,
+            "isMaxZoneOpenedSupported": false,
+            "isExhibitionFunctionSupported": false,
+            "isLdsLiftingSupported": false,
+            "isAutoTearDownMopSupported": false,
+            "isSmallSideMopSupported": false,
+            "isSupportSideBrushUpDownSupported": false,
+            "isDryIntervalTimerSupported": false,
+            "isUvcSterilizeSupported": false,
+            "isMidwayBackToDockSupported": false,
+            "isSupportMainBrushUpDownSupported": false,
+            "isEggDanceModeSupported": false,
+            "isMechanicalArmModeSupported": false,
+            "isTidyupZonesSupported": false,
+            "isCleanTimeLineSupported": false,
+            "isCleanThenMopModeSupported": false,
+            "isTypeIdentifySupported": false,
+            "isSupportGetParticularStatusSupported": false,
+            "isThreeDMappingInnerTestSupported": false,
+            "isSyncServerNameSupported": false,
+            "isShouldShowArmOverLoadSupported": false,
+            "isCollectDustCountShowSupported": false,
+            "isSupportApiAppStopGraspSupported": false,
+            "isCtmWithRepeatSupported": false,
+            "isSideBrushLiftCarpetSupported": false,
+            "isDetectWireCarpetSupported": false,
+            "isWaterSlideModeSupported": false,
+            "isSoakAndWashSupported": false,
+            "isCleanEfficiencySupported": false,
+            "isBackWashNewSmartSupported": false,
+            "isDualBandWiFiSupported": false,
+            "isProgramModeSupported": false,
+            "isCleanFluidDeliverySupported": false,
+            "isCarpetLongHairedExSupported": false,
+            "isOverSeaCtmSupported": false,
+            "isFullDuplesSwitchSupported": false,
+            "isLowAreaAccessSupported": false,
+            "isFollowLowObsSupported": false,
+            "isTwoGearsNoCollisionSupported": false,
+            "isCarpetShapeTypeSupported": false,
+            "isSrMapSupported": false,
+            "isLedStatusSwitchSupported": true,
+            "isMultiFloorSupported": true,
+            "isSupportFetchTimerSummary": true,
+            "isOrderCleanSupported": true,
+            "isAnalysisSupported": true,
+            "isRemoteSupported": true,
+            "isSupportVoiceControlDebug": false,
+            "isMopForbiddenSupported": false,
+            "isSoftCleanModeSupported": false,
+            "isCustomModeSupported": true,
+            "isSupportCustomCarpet": false,
+            "isShowGeneralObstacleSupported": false,
+            "isShowObstaclePhotoSupported": false,
+            "isRubberBrushCarpetSupported": false,
+            "isCarpetPressureUseOriginParasSupported": false,
+            "isSupportMopBackPwmSet": false,
+            "isCollectDustModeSupported": true,
+            "isSupportWaterMode": true,
+            "isPureCleanMopSupported": true,
+            "isNewRemoteViewSupported": true,
+            "isMaxPlusModeSupported": true,
+            "isNonePureCleanMopWithMaxPlus": false,
+            "isCleanRouteSettingSupported": true,
+            "isMopShakeModuleSupported": true,
+            "isCustomizedCleanSupported": true,
+            "newFeatureInfo": false,
+            "newFeatureInfoStr": "",
+            "featureInfo": []
+          },
+          "network_info": {
+            "ip": "**REDACTED**"
+          },
+          "child_lock": {
+            "lockStatus": 0
+          },
+          "led_status": {
+            "status": 0
+          },
+          "valley_electricity_timer": {
+            "startHour": 0,
+            "startMinute": 0,
+            "endHour": 0,
+            "endMinute": 0,
+            "enabled": 0
+          },
+          "dust_collection_mode": {
+            "mode": 0
+          },
+          "wash_towel_mode": {
+            "washMode": "balanced"
+          },
+          "smart_wash_params": {
+            "smartWash": 0,
+            "washInterval": 1500
+          }
+        }
+      }
+    }
+  },
+  "issues": []
+}

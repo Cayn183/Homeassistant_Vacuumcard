@@ -605,7 +605,9 @@ class VacuumCard extends LitElement {
   }
 
   get _batteryLevel() {
-    return this._stateObj?.attributes.battery_level ?? this._stateObj?.attributes.battery ?? 0;
+    // Roborock & Standard: battery_level oder battery
+    const attrs = this._stateObj?.attributes || {};
+    return attrs.battery_level ?? attrs.battery ?? attrs.battery_percentage ?? 0;
   }
 
   get _fanSpeed() {
@@ -622,10 +624,32 @@ class VacuumCard extends LitElement {
 
   get _rooms() {
     if (!this._stateObj) return [];
-    // Roborock: attributes.rooms = [{id: 0, name: 'Wohnzimmer'}, ...]
-    const rooms = this._stateObj.attributes.rooms || this._stateObj.attributes.map_segments || [];
-    if (Array.isArray(rooms) && rooms.length > 0) return rooms;
-    // Fallback: try to parse from cleaned_rooms or other attributes
+    const attrs = this._stateObj.attributes || {};
+
+    // 1) Direkt als Array: [{id, name}] oder [{segmentId, rawName}, ...]
+    if (Array.isArray(attrs.rooms)) {
+      return attrs.rooms.map(r => ({
+        id: r.id ?? r.segmentId ?? r.segment_id,
+        name: r.name ?? r.rawName ?? r.segment_name ?? r,
+      })).filter(r => r.id != null && r.name);
+    }
+
+    // 2) Verschachtelt: {rooms: [{segmentId, rawName}, ...]} (Roborock Traits-Format)
+    if (attrs.rooms?.rooms && Array.isArray(attrs.rooms.rooms)) {
+      return attrs.rooms.rooms.map(r => ({
+        id: r.segmentId ?? r.id,
+        name: r.rawName ?? r.name,
+      })).filter(r => r.id != null && r.name);
+    }
+
+    // 3) map_segments (Valetudo)
+    if (Array.isArray(attrs.map_segments)) {
+      return attrs.map_segments.map(r => ({
+        id: r.id ?? r.segmentId,
+        name: r.name ?? r.rawName,
+      })).filter(r => r.id != null && r.name);
+    }
+
     return [];
   }
 
