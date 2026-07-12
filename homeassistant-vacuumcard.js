@@ -574,6 +574,7 @@ class VacuumCard extends LitElement {
     this._fanSpeedOptions = [];
     this._showAreaDialog = false;
     this._selectedAreas = [];
+    this._haAreas = [];
   }
 
   setConfig(config) {
@@ -742,6 +743,57 @@ class VacuumCard extends LitElement {
     }
 
     return [];
+  }
+
+  /**
+   * Ruft alle Bereiche (Areas) aus der Home-Assistant-Area-Registry ab.
+   * Verwendet die WebSocket-API (config/area_registry/list).
+   * Entspricht der {{ areas() }}-Template-Funktion in HA-Templates.
+   */
+  async _fetchHAAreas() {
+    if (!this.hass) return;
+    try {
+      // Bereiche über die HA-WebSocket-API abrufen
+      const areas = await this.hass.callWS({ type: 'config/area_registry/list' });
+      this._haAreas = areas.map(area => ({
+        id: area.area_id,
+        name: area.name,
+      })).filter(a => a.name);
+      this.requestUpdate();
+    } catch (e) {
+      // Fallback: Versuche über die REST-API
+      try {
+        const response = await this.hass.callApi('GET', 'config/area_registry/list');
+        this._haAreas = (response || []).map(area => ({
+          id: area.area_id,
+          name: area.name,
+        })).filter(a => a.name);
+        this.requestUpdate();
+      } catch (e2) {
+        console.warn('VacuumCard: Fehler beim Abrufen der HA-Bereiche (WebSocket & REST)', e, e2);
+        this._haAreas = [];
+        this.requestUpdate();
+      }
+    }
+  }
+
+  /**
+   * Gibt alle verfügbaren Bereiche zurück – priorisiert:
+   * 1. Vom Staubsauger gelieferte Räume (mit Segment-IDs)
+   * 2. Home-Assistant-Areas (aus der Area-Registry)
+   */
+  get _allAreas() {
+    const vacuumRooms = this._rooms;
+    if (vacuumRooms.length > 0) {
+      return vacuumRooms.map(r => ({
+        ...r,
+        source: 'vacuum',
+      }));
+    }
+    return this._haAreas.map(a => ({
+      ...a,
+      source: 'ha',
+    }));
   }
 
   /* --- Service Calls --- */
@@ -935,8 +987,9 @@ class VacuumCard extends LitElement {
   }
 
   _renderAreaDialog() {
-    const rooms = this._rooms;
-    const hasRooms = rooms.length > 0;
+    const allAreas = this._allAreas;
+    const hasAreas = allAreas.length > 0;
+    const isHASource = this._rooms.length === 0 && this._haAreas.length > 0;
 
     return html`
       <div class="area-dialog-overlay" @click=${this._closeAreaDialog}>
@@ -946,19 +999,24 @@ class VacuumCard extends LitElement {
             <button class="close-btn" @click=${this._closeAreaDialog}>✕</button>
           </div>
 
-          ${hasRooms ? html`
+          ${hasAreas ? html`
+            ${isHASource ? html`
+              <p class="area-hint" style="margin-bottom:12px;">
+                Bereiche aus deiner Home-Assistant-Area-Registry.
+                Bereichsbasierte Reinigung erfordert ggf. zusätzliche Konfiguration.
+              </p>
+            ` : ''}
             <div class="area-grid">
-              ${rooms.map((room, index) => {
-                const roomName = room.name || room;
-                const roomId = room.name || room;
-                const isSelected = this._selectedAreas.includes(roomName);
-                const order = this._selectedAreas.indexOf(roomName) + 1;
+              ${allAreas.map((area) => {
+                const areaName = area.name;
+                const isSelected = this._selectedAreas.includes(areaName);
+                const order = this._selectedAreas.indexOf(areaName) + 1;
                 return html`
                   <div class="area-card ${isSelected ? 'selected' : ''}"
-                       @click=${() => this._toggleArea(roomName)}>
+                       @click=${() => this._toggleArea(areaName)}>
                     ${isSelected ? html`<span class="badge">${order}</span>` : ''}
                     <div class="area-icon">${svgIcon(ICONS.cleanAreas, 24)}</div>
-                    <div class="area-name">${roomName}</div>
+                    <div class="area-name">${areaName}</div>
                   </div>
                 `;
               })}
@@ -1108,6 +1166,7 @@ class VacuumCard extends LitElement {
     if (!this.hass || !this._stateObj) return;
     this._selectedAreas = [];
     this._showAreaDialog = true;
+    this._fetchHAAreas();
     this.requestUpdate();
   }
 
@@ -1128,13 +1187,14 @@ class VacuumCard extends LitElement {
 
   _startAreaCleaning() {
     if (!this.hass || !this._stateObj || this._selectedAreas.length === 0) return;
-    // Try Roborock-style: vacuum.send_command with app_segment_clean
-    const rooms = this._rooms;
-    if (rooms.length > 0) {
-      // Map area IDs to room segment IDs
+
+    const vacuumRooms = this._rooms;
+
+    if (vacuumRooms.length > 0) {
+      // Vakuum-eigene Räume mit Segment-IDs (Roborock-Stil)
       const segmentIds = this._selectedAreas
         .map(name => {
-          const room = rooms.find(r => r.name === name || r.id === name);
+          const room = vacuumRooms.find(r => r.name === name || r.id === name);
           return room ? room.id : null;
         })
         .filter(id => id !== null);
@@ -1144,6 +1204,13 @@ class VacuumCard extends LitElement {
           params: { segments: segmentIds },
         });
       }
+    } else if (this._haAreas.length > 0) {
+      // HA-Areas (keine Vakuum-Segment-IDs verfügbar)
+      // Verwende Area-Namen als Parameter für den Reinigungsbefehl
+      this._callService('send_command', {
+        command: 'app_segment_clean',
+        params: { segments: this._selectedAreas },
+      });
     }
     this._closeAreaDialog();
   }
