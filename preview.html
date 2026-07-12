@@ -330,13 +330,13 @@
       containerNarrow.innerHTML = '';
 
       // Create normal card
-      const cardNormal = document.createElement('vacuum-card');
+      const cardNormal = document.createElement('homeassistant-vacuumcard');
       cardNormal.hass = hass;
       cardNormal.config = config;
       containerNormal.appendChild(cardNormal);
 
       // Create narrow card
-      const cardNarrow = document.createElement('vacuum-card');
+      const cardNarrow = document.createElement('homeassistant-vacuumcard');
       cardNarrow.hass = hass;
       cardNarrow.config = { ...config, show_title: false };
       containerNarrow.appendChild(cardNarrow);
@@ -374,6 +374,6 @@
   </script>
 
   <!-- Load the card -->
-  <script type="module" src="vacuum-card.js"></script>
+  <script type="module" src="homeassistant-vacuumcard.js"></script>
 </body>
 </html>

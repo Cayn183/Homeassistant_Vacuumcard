@@ -1,6 +1,6 @@
 {
-  "name": "Vacuum Control Card",
-  "filename": "vacuum-card.js",
+  "name": "Homeassistant Vacuumcard",
+  "filename": "homeassistant-vacuumcard.js",
   "render_readme": true,
   "country": "DE",
   "homeassistant": "2023.8.0",

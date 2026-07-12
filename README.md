@@ -1,9 +1,8 @@
-<<<<<<< HEAD
-# Vacuum Control Card
+# Homeassistant Vacuumcard
 
-Eine benutzerdefinierte Home Assistant Lovelace-Karte, die das gesamte Staubsauger-Bedienfeld aus dem More-Info-Dialog nachbildet – inklusive animierter SVG-Visualisierung, Batterieanzeige, Steuerungstasten und Lüftergeschwindigkeitsauswahl.
+Eine benutzerdefinierte Home Assistant Lovelace-Karte, die das gesamte Staubsauger-Bedienfeld aus dem More-Info-Dialog nachbildet – inklusive animierter SVG-Visualisierung, Batterieanzeige, Steuerungstasten, Lüftergeschwindigkeitsauswahl und bereichsbasierter Reinigung.
 
-![Vacuum Card Vorschau](https://img.shields.io/badge/HA%-Vacuum%20Card-blue)
+![Homeassistant Vacuumcard](https://img.shields.io/badge/HA-Homeassistant%20Vacuumcard-blue)
 
 ## Funktionen
 
@@ -21,7 +20,7 @@ Eine benutzerdefinierte Home Assistant Lovelace-Karte, die das gesamte Staubsaug
   - 📍 Lokalisieren
   - 🔲 Fleck reinigen
 - 💨 **Lüftergeschwindigkeitsauswahl** (Dropdown-Menü)
-- 🧽 **Reinigungsmodus-Anzeige**
+- 🧽 **Bereichsbasierte Reinigung** mit Raumauswahl-Dialog
 - 🌐 **Unterstützt Übersetzungen** für Status-Texte
 
 ## Installation
@@ -31,29 +30,29 @@ Eine benutzerdefinierte Home Assistant Lovelace-Karte, die das gesamte Staubsaug
 1. Öffne HACS in Home Assistant
 2. Gehe zu "Frontend"
 3. Klicke auf das Menü (drei Punkte) → "Custom repositories"
-4. Füge `https://github.com/DEIN_USERNAME/Homeassistant_Vacuumcard` als "Lovelace" hinzu
-5. Klicke auf "Durchsuchen & Herunterladen" und suche nach "Vacuum Control Card"
+4. Füge `https://github.com/Cayn183/Homeassistant_Vacuumcard` als "Lovelace" hinzu
+5. Klicke auf "Durchsuchen & Herunterladen" und suche nach "Homeassistant Vacuumcard"
 6. Klicke auf "Herunterladen"
 7. Füge die Karte zu deinem Dashboard hinzu
 
 ### Manuelle Installation
 
-1. Lade `vacuum-card.js` herunter
+1. Lade `homeassistant-vacuumcard.js` herunter
 2. Kopiere die Datei in den Ordner `/config/www/` deiner Home Assistant-Installation
 3. Füge folgendes zu deiner `ui-lovelace.yaml` oder im Raw-Config-Editor hinzu:
 
 ```yaml
 resources:
-  - url: /local/vacuum-card.js
+  - url: /local/homeassistant-vacuumcard.js
     type: module
 ```
 
 ## Verwendung
 
-Füge eine Karte mit `type: 'custom:vacuum-card'` zu deinem Dashboard hinzu:
+Füge eine Karte mit `type: 'custom:homeassistant-vacuumcard'` zu deinem Dashboard hinzu:
 
 ```yaml
-type: custom:vacuum-card
+type: custom:homeassistant-vacuumcard
 entity: vacuum.dein_saugroboter
 title: Mein Saugroboter
 show_title: true
@@ -93,15 +92,9 @@ Getestet mit:
 Die Karte verwendet [LitElement](https://lit-element.polymer-project.org/) und wird als ES-Modul bereitgestellt.
 
 ```bash
-# Installation der Abhängigkeiten (für Entwicklung)
-npm install
-
-# Für Produktion einfach die vacuum-card.js verwenden
+# Für Produktion einfach die homeassistant-vacuumcard.js verwenden
 ```
 
 ## Lizenz
 
 MIT
-=======
-# Homeassistant_Vacuumcard
->>>>>>> bc6a8989c25a4a0f0936fba9ccb04caaeb593597

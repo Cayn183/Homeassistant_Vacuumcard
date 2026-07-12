@@ -1029,7 +1029,7 @@ class VacuumCard extends LitElement {
   }
 
   static getConfigElement() {
-    return document.createElement('vacuum-card-editor');
+    return document.createElement('homeassistant-vacuumcard-editor');
   }
 
   static getStubConfig() {
@@ -1042,7 +1042,7 @@ class VacuumCard extends LitElement {
   }
 }
 
-customElements.define('vacuum-card', VacuumCard);
+customElements.define('homeassistant-vacuumcard', VacuumCard);
 
 /* ---------- Vacuum Card Editor ---------- */
 class VacuumCardEditor extends LitElement {
@@ -1354,11 +1354,11 @@ class VacuumCardEditor extends LitElement {
           <h3>👁️ Vorschau</h3>
 
           ${hasEntity ? html`
-            <vacuum-card
+            <homeassistant-vacuumcard
               .hass=${this.hass}
               .config=${config}
               style="--ha-card-border-radius:10px;"
-            ></vacuum-card>
+            ></homeassistant-vacuumcard>
           ` : html`
             <div class="preview-placeholder">
               <svg viewBox="0 0 24 24">
@@ -1389,12 +1389,12 @@ class VacuumCardEditor extends LitElement {
   }
 }
 
-customElements.define('vacuum-card-editor', VacuumCardEditor);
+customElements.define('homeassistant-vacuumcard-editor', VacuumCardEditor);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'vacuum-card',
-  name: 'Vacuum Control Card',
+  type: 'homeassistant-vacuumcard',
+  name: 'Homeassistant Vacuumcard',
   description: 'A full-featured vacuum control panel with animated visualization',
   preview: true,
 });
