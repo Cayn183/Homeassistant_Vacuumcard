@@ -1230,19 +1230,21 @@ class VacuumCardEditor extends LitElement {
     this._updateConfig('entity', ev.detail.value);
   }
 
-  _titleChanged(ev) {
-    this._updateConfig('title', ev.target?.value ?? ev.detail?.value ?? '');
+  _showTitleChanged(ev) {
+    this._updateConfig('show_title', ev.target.checked);
   }
 
-  _switchChanged(ev) {
-    const key = ev.currentTarget.getAttribute('configValue');
-    if (key) {
-      this._updateConfig(key, ev.target.checked);
-    }
+  _animatedChanged(ev) {
+    this._updateConfig('animated', ev.target.checked);
   }
 
   _batteryEntityPicked(ev) {
     this._updateConfig('battery_entity', ev.detail.value || '');
+  }
+
+  _titleInputChanged(ev) {
+    const value = ev.target?.value ?? ev.detail?.value ?? '';
+    this._updateConfig('title', value);
   }
 
   render() {
@@ -1260,30 +1262,30 @@ class VacuumCardEditor extends LitElement {
           label="Staubsauger-Entity"
         ></ha-entity-picker>
 
-        <div class="side-by-side">
-          <ha-formfield label="Titel anzeigen">
+        <div style="margin-top:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+            <span style="color:var(--primary-text-color);font-size:14px;">Titel anzeigen</span>
             <ha-switch
               .checked=${config.show_title !== false}
-              configValue="show_title"
-              @change=${this._switchChanged}
+              @change=${this._showTitleChanged}
             ></ha-switch>
-          </ha-formfield>
-
-          <ha-formfield label="Animationen">
-            <ha-switch
-              .checked=${config.animated !== false}
-              configValue="animated"
-              @change=${this._switchChanged}
-            ></ha-switch>
-          </ha-formfield>
+          </div>
+          <ha-textfield
+            .value=${config.title || ''}
+            label="Titel"
+            placeholder="z.B. Mein Saugroboter"
+            @input=${this._titleInputChanged}
+            style="display:block;width:100%;"
+          ></ha-textfield>
         </div>
 
-        <ha-textfield
-          .value=${config.title || ''}
-          label="Titel"
-          placeholder="z.B. Mein Saugroboter"
-          @input=${this._titleChanged}
-        ></ha-textfield>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;margin-top:8px;">
+          <span style="color:var(--primary-text-color);font-size:14px;">Animationen</span>
+          <ha-switch
+            .checked=${config.animated !== false}
+            @change=${this._animatedChanged}
+          ></ha-switch>
+        </div>
 
         <ha-entity-picker
           .hass=${this.hass}
@@ -1292,6 +1294,7 @@ class VacuumCardEditor extends LitElement {
           @value-changed=${this._batteryEntityPicked}
           label="Batterie-Sensor (optional)"
           placeholder="Automatisch erkennen"
+          style="display:block;margin-top:16px;"
         ></ha-entity-picker>
       </div>
     `;
