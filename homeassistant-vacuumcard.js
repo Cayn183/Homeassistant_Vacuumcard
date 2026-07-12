@@ -234,7 +234,7 @@ class VacuumCard extends LitElement {
         width: 52px;
         height: 52px;
         border: none;
-        border-radius: 50%;
+        border-radius: 8px;
         background: var(--ha-button-background, var(--secondary-background-color, rgba(0,0,0,0.05)));
         color: var(--primary-text-color);
         cursor: pointer;
@@ -267,12 +267,13 @@ class VacuumCard extends LitElement {
       .select-container {
         display: flex;
         gap: 12px;
-        flex-wrap: wrap;
+        justify-content: center;
       }
 
       .select-menu, .clean-areas-btn {
-        flex: 1;
+        flex: 1 1 0px;
         min-width: 140px;
+        max-width: 240px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -330,8 +331,9 @@ class VacuumCard extends LitElement {
       /* --- Dropdown (fan speed) --- */
       .dropdown-wrapper {
         position: relative;
-        flex: 1;
+        flex: 1 1 0px;
         min-width: 140px;
+        max-width: 240px;
       }
 
       .dropdown-menu {
