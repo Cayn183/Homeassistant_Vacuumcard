@@ -337,7 +337,7 @@ class VacuumCard extends LitElement {
 
       .dropdown-menu {
         position: absolute;
-        top: 100%;
+        bottom: 100%;
         left: 0;
         right: 0;
         z-index: 100;
@@ -346,7 +346,7 @@ class VacuumCard extends LitElement {
         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         padding: 4px 0;
         display: none;
-        margin-top: 4px;
+        margin-bottom: 4px;
       }
 
       .dropdown-menu.open {
