@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Vacuum Control Card
 
 Eine benutzerdefinierte Home Assistant Lovelace-Karte, die das gesamte Staubsauger-Bedienfeld aus dem More-Info-Dialog nachbildet – inklusive animierter SVG-Visualisierung, Batterieanzeige, Steuerungstasten und Lüftergeschwindigkeitsauswahl.
@@ -101,3 +102,6 @@ npm install
 ## Lizenz
 
 MIT
+=======
+# Homeassistant_Vacuumcard
+>>>>>>> bc6a8989c25a4a0f0936fba9ccb04caaeb593597
